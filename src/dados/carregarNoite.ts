@@ -90,6 +90,7 @@ export async function carregarNoite(
       entrouAs: p.entrou_as,
       saiuAs: p.saiu_as ?? undefined,
       encerrada: p.encerrada,
+      lugar: p.lugar ?? undefined,
     })),
     turnos: ((turnos.data ?? []) as LinhaTurno[]).map((t) => ({
       id: t.id,

@@ -83,15 +83,26 @@ export async function persistirDelta(
           entrou_as: p.entrouAs,
           saiu_as: p.saiuAs ?? null,
           encerrada: p.encerrada,
+          lugar: p.lugar ?? null,
         })
         .select('id')
         .single()
       erro(error, 'a entrada do jogador na mesa')
       mapa.set(p.id, data!.id)
-    } else if (anterior.encerrada !== p.encerrada || anterior.saiuAs !== p.saiuAs) {
+    } else if (
+      anterior.encerrada !== p.encerrada ||
+      anterior.saiuAs !== p.saiuAs ||
+      // Sentar quem estava de pe muda uma participacao que JA existe. Sem esta
+      // condicao a cadeira escolhida sumia no recarregar da pagina.
+      anterior.lugar !== p.lugar
+    ) {
       const { error } = await db
         .from('participacao')
-        .update({ encerrada: p.encerrada, saiu_as: p.saiuAs ?? null })
+        .update({
+          encerrada: p.encerrada,
+          saiu_as: p.saiuAs ?? null,
+          lugar: p.lugar ?? null,
+        })
         .eq('id', p.id)
       erro(error, 'a saída do jogador')
     }

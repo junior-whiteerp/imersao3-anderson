@@ -45,6 +45,8 @@ export interface LinhaParticipacao {
   entrou_as: Minutos
   saiu_as: Minutos | null
   encerrada: boolean
+  /** 1 a 10, ou null enquanto o jogador estiver de pe. */
+  lugar: number | null
 }
 
 export interface LinhaTurno {
