@@ -79,6 +79,14 @@ export interface Participacao {
   entrouAs: Minutos
   saiuAs?: Minutos
   encerrada: boolean
+  /**
+   * O lugar na mesa, de 1 a TOTAL_DE_LUGARES. Ausente = o jogador entrou na
+   * sessao mas ainda nao tem cadeira: ele aparece "de pe".
+   *
+   * O numero e escolhido pelo operador, nao derivado de ordem — senao todo
+   * mundo anda uma cadeira quando alguem fecha a conta. Item 4 da D4 do PRD.
+   */
+  lugar?: number
 }
 
 export interface Dealer {
@@ -236,6 +244,13 @@ export function turnosDaSessao(noite: Noite): Turno[] {
 
 export const TETO_CONTINGENCIAS = 3
 
+/**
+ * A mesa tem dez lugares. Nao e configuravel: o R1 tem uma mesa por sessao
+ * (DEC-003) e o PRD diz dez. O `check` da migration 0002 grava o mesmo numero,
+ * e os dois so mudam juntos.
+ */
+export const TOTAL_DE_LUGARES = 10
+
 /** Faixas da regra N17, em reais. */
 export const FAIXA_REGISTRAR = 100
 export const FAIXA_REVISAR = 500
@@ -358,6 +373,30 @@ export function aguardando(noite: Noite, participacaoId: string): number {
   return movimentacoesDe(noite, participacaoId)
     .filter((m) => m.situacao === 'aguardando' && m.tipo === 'retirada')
     .reduce((s, m) => s + m.valor, 0)
+}
+
+/**
+ * O jogador ja validou ficha nesta participacao?
+ *
+ * O teste e existir retirada CONFIRMADA — nao `emMao > 0`. Quem confirmou
+ * R$ 500 e devolveu tudo continua tendo validado: a cadeira dele nao pode
+ * piscar de volta para reservado no fechamento, que e justamente quando ele
+ * ainda esta na mesa. E o que separa lugar reservado de lugar ocupado (A26).
+ */
+export function validouFicha(noite: Noite, participacaoId: string): boolean {
+  return movimentacoesDe(noite, participacaoId).some(
+    (m) => m.tipo === 'retirada' && m.situacao === 'confirmada'
+  )
+}
+
+/**
+ * Quem esta sentado neste lugar agora, se alguem.
+ *
+ * So conta participacao ABERTA: e isso que devolve a cadeira ao pool quando
+ * alguem fecha a conta, sem apagar o numero da participacao encerrada (N13).
+ */
+export function participacaoNoLugar(noite: Noite, lugar: number): Participacao | null {
+  return participacoesAbertas(noite).find((p) => p.lugar === lugar) ?? null
 }
 
 /**
