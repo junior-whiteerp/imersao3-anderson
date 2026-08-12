@@ -31,6 +31,38 @@ describe('NoiteProvider', () => {
     expect(await screen.findByText(/erro:conexão recusada/)).toBeInTheDocument()
   })
 
+  it('carrega a noite uma vez só, mesmo com o pai renderizando de novo', async () => {
+    // Com `carregar` na lista de dependências do efeito, o app entrava em laço:
+    // cada carga provocava um render, e cada render uma carga nova, contra o
+    // banco, para sempre. Nos testes anteriores isso passava despercebido
+    // porque o provider renderizava uma vez só.
+    const vazia = {
+      sessao: null, jogadores: [], dealers: [], sessoes: [], participacoes: [],
+      turnos: [], movimentacoes: [], checkpoints: [], agora: 0, aviso: null,
+      seq: 1, furoOculto: 0,
+    }
+    const carregar = vi.fn().mockResolvedValue(vazia as never)
+
+    const { rerender } = render(
+      <NoiteProvider carregar={carregar}>
+        <Sonda />
+      </NoiteProvider>
+    )
+    await screen.findByText(/pronto::sem-sessao/)
+
+    // Três renders do pai, cada um passando uma `carregar` recém-criada.
+    for (let i = 0; i < 3; i++) {
+      rerender(
+        <NoiteProvider carregar={(...a) => carregar(...a)}>
+          <Sonda />
+        </NoiteProvider>
+      )
+    }
+    await screen.findByText(/pronto::sem-sessao/)
+
+    expect(carregar).toHaveBeenCalledTimes(1)
+  })
+
   it('vazio é vazio: banco sem sessão não vira noite de exemplo', async () => {
     const vazia = {
       sessao: null,

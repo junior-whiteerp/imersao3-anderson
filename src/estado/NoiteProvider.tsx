@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
@@ -55,10 +56,21 @@ export function NoiteProvider({
   const [estado, setEstado] = useState<Estado>('carregando')
   const [erro, setErro] = useState<string | null>(null)
 
+  /**
+   * `carregar` chega como função nova a cada render — o valor padrão é uma
+   * arrow criada na própria assinatura. Se `recarregar` dependesse dela, o
+   * efeito abaixo dispararia a cada render, e cada carga provocaria o render
+   * seguinte: o app ficaria relendo a noite inteira em laço, sem parar, contra
+   * o banco. Guardar a função numa ref mantém `recarregar` estável e ainda usa
+   * sempre a versão mais recente.
+   */
+  const carregarRef = useRef(carregar)
+  carregarRef.current = carregar
+
   const recarregar = useCallback(async () => {
     setEstado('carregando')
     try {
-      setNoite(await carregar())
+      setNoite(await carregarRef.current())
       setErro(null)
       setEstado('pronto')
     } catch (e) {
@@ -66,7 +78,7 @@ export function NoiteProvider({
       setErro(e instanceof Error ? e.message : 'Falha ao falar com o banco.')
       setEstado('erro')
     }
-  }, [carregar])
+  }, [])
 
   useEffect(() => {
     void recarregar()
