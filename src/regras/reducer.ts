@@ -7,6 +7,7 @@
 
 import {
   TETO_CONTINGENCIAS,
+  TOTAL_DE_LUGARES,
   caixaEsperado,
   checkpointsDaSessao,
   comprometido,
@@ -14,6 +15,7 @@ import {
   formatarHora,
   jaRegistrado,
   jogadorPorIdentidade,
+  participacaoNoLugar,
   participacoesAbertas,
   podeEncerrarSessao,
   reais,
@@ -43,7 +45,7 @@ export type Acao =
       /** A17: o operador confirmou que este WhatsApp é de outra pessoa. */
       confirmouOutraPessoa?: boolean
     }
-  | { tipo: 'sentar'; jogadorId: string }
+  | { tipo: 'sentar'; jogadorId: string; lugar?: number }
   | { tipo: 'lancar-retirada'; participacaoId: string; valor: number; motivo?: string }
   | {
       tipo: 'confirmar'
@@ -226,10 +228,43 @@ export function reducer(noite: Noite, acao: Acao): Noite {
       if (!noite.sessao?.aberta) {
         return comAviso(noite, 'Abra a sessão antes de sentar alguém na mesa.')
       }
-      const jaNaMesa = participacoesAbertas(noite).some(
-        (p) => p.jogadorId === acao.jogadorId
-      )
-      if (jaNaMesa) return comAviso(noite, 'Esse jogador já está na mesa.')
+
+      // A mesa tem dez cadeiras e nao e configuravel (DEC-003).
+      if (acao.lugar !== undefined) {
+        const dentroDaMesa =
+          Number.isInteger(acao.lugar) && acao.lugar >= 1 && acao.lugar <= TOTAL_DE_LUGARES
+        if (!dentroDaMesa) {
+          return comAviso(noite, `A mesa tem ${TOTAL_DE_LUGARES} lugares.`)
+        }
+      }
+
+      const dele = participacoesAbertas(noite).find((p) => p.jogadorId === acao.jogadorId)
+
+      // A cadeira so esta tomada se for de OUTRO jogador. Sentar a Bia no
+      // lugar em que a Bia ja esta tem de dizer "ja esta na mesa" — a mensagem
+      // aponta para o que o operador precisa corrigir.
+      if (acao.lugar !== undefined) {
+        const ocupante = participacaoNoLugar(noite, acao.lugar)
+        if (ocupante && ocupante.id !== dele?.id) {
+          return comAviso(noite, `O lugar ${acao.lugar} já está ocupado.`)
+        }
+      }
+
+      // Ja esta na mesa e ainda de pe: ele ganha a cadeira, e NAO vira uma
+      // segunda participacao. Sem este caminho, quem entra pela aba Mesa —
+      // que nao tem desenho para tocar — fica de pe para sempre.
+      if (dele) {
+        if (dele.lugar === undefined && acao.lugar !== undefined) {
+          return {
+            ...noite,
+            participacoes: noite.participacoes.map((p) =>
+              p.id === dele.id ? { ...p, lugar: acao.lugar } : p
+            ),
+            aviso: null,
+          }
+        }
+        return comAviso(noite, 'Esse jogador já está na mesa.')
+      }
 
       return {
         ...noite,
@@ -241,6 +276,7 @@ export function reducer(noite: Noite, acao: Acao): Noite {
             jogadorId: acao.jogadorId,
             entrouAs: noite.agora,
             encerrada: false,
+            lugar: acao.lugar,
           },
         ],
         seq: noite.seq + 1,

@@ -112,3 +112,75 @@ describe('a leitura dos tres estados da mesa', () => {
     expect(noite.participacoes.find((p) => p.id === rafa.id)?.lugar).toBe(7)
   })
 })
+
+describe('sentar com lugar escolhido', () => {
+  it('o lugar sobrevive a saida de outro jogador — o bug original', () => {
+    let noite = rodar(noiteVazia, [
+      ...ABRIR,
+      { tipo: 'sentar', jogadorId: 'j-rafa', lugar: 1 },
+      { tipo: 'sentar', jogadorId: 'j-dede', lugar: 4 },
+    ])
+    const rafa = participacaoDe(noite, 'j-rafa')
+    expect(participacaoDe(noite, 'j-dede').lugar).toBe(4)
+
+    noite = reducer(noite, { tipo: 'devolver-e-encerrar', participacaoId: rafa.id, valor: 0 })
+
+    // Antes deste plano o Dede virava lugar 1 sem ter se mexido, porque o
+    // lugar era a posicao no array ordenado por hora de confirmacao.
+    expect(participacaoDe(noite, 'j-dede').lugar).toBe(4)
+  })
+
+  it('recusa dois jogadores no mesmo lugar, e nao cria participacao', () => {
+    const antes = rodar(noiteVazia, [...ABRIR, { tipo: 'sentar', jogadorId: 'j-rafa', lugar: 5 }])
+    const depois = reducer(antes, { tipo: 'sentar', jogadorId: 'j-bia', lugar: 5 })
+
+    expect(depois.aviso).toBe('O lugar 5 já está ocupado.')
+    expect(participacoesAbertas(depois)).toHaveLength(1)
+  })
+
+  it('quem esta de pe recebe lugar sem virar participacao nova', () => {
+    const antes = rodar(noiteVazia, [...ABRIR, { tipo: 'sentar', jogadorId: 'j-tiago' }])
+    expect(participacaoDe(antes, 'j-tiago').lugar).toBeUndefined()
+
+    const depois = reducer(antes, { tipo: 'sentar', jogadorId: 'j-tiago', lugar: 7 })
+
+    // Sem este caso, quem entra pela aba Mesa fica de pe para sempre: a unica
+    // acao que existe recusaria com "ja esta na mesa".
+    expect(participacaoDe(depois, 'j-tiago').lugar).toBe(7)
+    expect(participacoesAbertas(depois)).toHaveLength(1)
+    expect(participacaoDe(depois, 'j-tiago').id).toBe(participacaoDe(antes, 'j-tiago').id)
+  })
+
+  it('quem ja esta sentado recebe o aviso do jogador, nao o do lugar', () => {
+    const antes = rodar(noiteVazia, [...ABRIR, { tipo: 'sentar', jogadorId: 'j-bia', lugar: 3 }])
+    const depois = reducer(antes, { tipo: 'sentar', jogadorId: 'j-bia', lugar: 3 })
+
+    // A guarda do lugar ignora a participacao do proprio jogador: a mensagem
+    // tem de apontar para o que o operador precisa corrigir.
+    expect(depois.aviso).toBe('Esse jogador já está na mesa.')
+  })
+
+  it('recusa lugar fora da mesa', () => {
+    const antes = rodar(noiteVazia, ABRIR)
+
+    expect(reducer(antes, { tipo: 'sentar', jogadorId: 'j-bia', lugar: 0 }).aviso).toBe(
+      'A mesa tem 10 lugares.'
+    )
+    expect(reducer(antes, { tipo: 'sentar', jogadorId: 'j-bia', lugar: 11 }).aviso).toBe(
+      'A mesa tem 10 lugares.'
+    )
+    expect(participacoesAbertas(reducer(antes, { tipo: 'sentar', jogadorId: 'j-bia', lugar: 11 })))
+      .toHaveLength(0)
+  })
+
+  it('encerrar a conta libera a cadeira para outra pessoa', () => {
+    let noite = rodar(noiteVazia, [...ABRIR, { tipo: 'sentar', jogadorId: 'j-rafa', lugar: 2 }])
+    const rafa = participacaoDe(noite, 'j-rafa')
+
+    noite = reducer(noite, { tipo: 'devolver-e-encerrar', participacaoId: rafa.id, valor: 0 })
+    noite = reducer(noite, { tipo: 'sentar', jogadorId: 'j-nando', lugar: 2 })
+
+    expect(participacaoDe(noite, 'j-nando').lugar).toBe(2)
+    expect(noite.participacoes.find((p) => p.id === rafa.id)?.lugar).toBe(2)
+  })
+})
