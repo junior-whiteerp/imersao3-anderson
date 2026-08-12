@@ -1,6 +1,6 @@
 ---
 owner: Anderson
-version: v1.8
+version: v1.9
 updated: 2026-08-12
 status: pendente de aprovação — v1.6 é a última aprovada
 tipo: prd
@@ -13,15 +13,22 @@ fonte: Anderson Playbook — BRIEF-Sessao-Poker, 7 SOPs, ARV-Limites-de-Autorida
 > Release 1 do StackTrack. Última versão aprovada: v1.6, em 2026-08-11.
 > Toda evidência citada vem do vault `Anderson Playbook/`.
 >
-> ⚠️ **A v1.7 e a v1.8 ainda não foram aprovadas.** A v1.7 fechou seis desvios
-> entre este documento e o protótipo. A v1.8 fecha a divergência **D4** — a mesa
-> visual foi **ratificada** pelo dono do processo em 2026-08-12 e virou a
-> funcionalidade **F13** — e registra dez desacordos novos (X1 a X10), achados
-> na auditoria cruzada entre PRD, protótipo e app implementado.
+> ⚠️ **As versões v1.7 a v1.9 ainda não foram aprovadas.** A v1.7 fechou seis
+> desvios entre este documento e o protótipo. A v1.8 registrou onze desacordos
+> novos (X1 a X11), achados na auditoria cruzada entre PRD, protótipo e app
+> implementado. A v1.9 fecha as duas divergências que dependiam do dono:
 >
-> **Uma pendência do dono continua aberta:** a leitura da conta do checkpoint
-> (seção 7). Ela segue marcada em 🔴 dentro do texto. Uma segunda nasceu na
-> v1.8: a autenticação de verdade, que foi construída contra a seção 13.
+> | | Ratificada em 2026-08-12 | Virou |
+> |---|---|---|
+> | **D4** | A mesa visual, construída contra o que estava escrito | **F13**, critério **A26** |
+> | **D5** | A autenticação de verdade, construída contra a seção 13 | **F14**, critério **A27**, risco **R11** |
+>
+> **Sobrou uma pendência do dono, e é a mais cara das três:** a leitura da conta
+> do checkpoint (seção 7). Ela segue marcada em 🔴 na seção — é a conta que
+> decide se o caixa fecha, e se estiver errada muda o produto inteiro.
+>
+> Continua aberto também o item 4 da D4: o número do lugar na mesa precisa
+> virar campo próprio da Participação. Esse não é decisão, é trabalho.
 >
 > 🔒 **A partir da v1.8 existe portão.** Nenhuma mudança de regra, escopo, dado
 > ou tela pode ser dada por encerrada sem passar por este documento — a rotina
@@ -251,8 +258,9 @@ entrar, os dois sentidos vão precisar de nomes distintos.
 | F9 | Relatório da sessão, guardado | Substitui o papel jogado fora |
 | **F12** | **Painel da noite** — a noite inteira numa tela: veredito do último checkpoint, os checkpoints em linha do tempo com os turnos, a conta aberta em parcelas e quem está com a caixa na mão | É a tela que fica aberta entre um lançamento e outro. Não pede ação nenhuma: responde "a conta está fechando?" de longe, sem navegar |
 | **F13** | **Mesa ao vivo** — a mesa vista de cima, com dez lugares. O lugar só é ocupado quando o jogador **confirma a primeira ficha** na tela girada; quem entrou e ainda não validou nada aparece separado, "de pé" | Torna a **N2 visível de longe**: quem já reconheceu ficha e quem não. Não é o mesmo que a lista da F2 — a lista serve para operar, o desenho serve para olhar sem navegar |
+| **F14** | **Autenticação do operador** — e-mail e senha contra um servidor, com sessão e saída. Nenhuma credencial no código que o navegador baixa | Sem ela, "quem lançou" em cada movimentação é um nome digitado, não uma identidade. E o registro da noite fica aberto para qualquer um que alcance o aparelho |
 
-> **F10 a F13 estão fora de ordem de propósito.** O vault não renumera
+> **F10 a F14 estão fora de ordem de propósito.** O vault não renumera
 > identificadores já usados — a mesma regra das decisões `DEC-NNN`. A
 > ordem da tabela segue a jornada; o número segue a data de criação.
 
@@ -276,7 +284,7 @@ critérios A8 e A9, metade do A15, uma linha do escopo do MVP — e o passo
 *"a exposição do jogador contra o limite, na tela, no momento do
 lançamento"*. É um corte de nove itens, não de um.
 
-**Quatro coisas não são cortáveis, e cada uma por um motivo diferente:**
+**Cinco coisas não são cortáveis, e cada uma por um motivo diferente:**
 
 | Não cai | Por quê |
 |---|---|
@@ -284,6 +292,7 @@ lançamento"*. É um corte de nove itens, não de um.
 | **F10** — cadastro | Sem cadastro não existe ficha. É a regra N15 |
 | **A tela de confirmação de F3** | Cortá-la deixa o produto na opção que a `DEC-006` rejeitou por escrito: *"entregar sem confirmação nenhuma reintroduz G2"*. Ela é o que cumpre a métrica M3 |
 | **F11** — registro de contingência | Sem ele a `DEC-006` perde o gatilho 2 da própria cláusula de revogação. Ninguém saberia que o aceite presencial falhou |
+| **F14** — autenticação | Ela já está construída, e voltar atrás custa mais do que manter. Cortá-la devolveria a credencial para dentro do código que o navegador baixa — e "quem lançou" voltaria a ser um nome digitado |
 
 ---
 
@@ -448,6 +457,7 @@ jogador continua sendo pergunta aberta no `checklist-confirmacao-r1`.
 
 | Tela | Vazio | Carregando | Sucesso | Erro |
 |---|---|---|---|---|
+| **Entrada** | Os dois campos vazios, o fundo da mesa de pôquer e o botão desligado | Botão vira "Entrando…" e recusa um segundo toque | A noite abre na tela que o operador deixou | A mensagem **do provedor, sem tradução** — "e-mail não confirmado" não vira "senha não confere". A senha é limpa; o e-mail fica |
 | **Painel** | "A noite ainda não começou", com caminho para abrir a sessão | Esqueleto dos mostradores | A noite inteira: veredito, linha do tempo dos checkpoints, a conta em parcelas e quem está com a caixa | Encerrada a sessão, vira porta para o relatório |
 | **Sessão** | "Nenhuma sessão aberta. Abrir agora?" com o campo do caixa inicial | Esqueleto do painel | Painel da sessão com o cronômetro rodando | "Já existe sessão aberta neste clube" com link para ela |
 | **Mesa** | "Ninguém na mesa ainda. Adicionar jogador" | Lista em cinza | Jogador aparece na lista com saldo zero | "Esse jogador já está na mesa" |
@@ -488,8 +498,13 @@ adoção.
 - Relatório da sessão, guardado depois de encerrada.
 - Painel da noite: a noite inteira numa tela, sem pedir ação.
 - Mesa ao vivo: dez lugares, ocupados só por quem confirmou a primeira ficha.
+- Autenticação do operador: e-mail e senha contra servidor, com sessão e saída.
 
 **Um clube. Um operador. Uma sessão por vez.**
+
+**Um operador continua sendo um operador.** A autenticação não traz níveis de
+permissão nem troca de usuário — ela só garante que o nome registrado em cada
+movimentação é de quem entrou, e não de quem digitou.
 
 ---
 
@@ -508,7 +523,8 @@ adoção.
 | App nativo e publicação em loja | Atrasa o piloto |
 | Rotina de expurgo de dados por prazo | Registrado como pendência de LGPD · risco R8. Vale para nome, telefone e histórico financeiro. O CPF é opcional desde a v1.2 |
 | Funcionamento sem internet | Registrado como risco R2 |
-| 🔴 **Autenticação de verdade** | Um operador, sem níveis de permissão. O protótipo tem uma **porta de demonstração** com usuário e senha no código que o navegador baixa — ela não protege nada, e está marcada como tal. Autenticação real precisa de servidor, senha com hash e sessão. ⚠️ **Este item foi contrariado na construção:** o app implementado entrou com login de verdade no Supabase (e-mail, senha, sessão, logout) e perfil de operador em tabela. É mais do que este documento pediu, e por isso mesmo precisa de decisão do dono — ratificar como escopo, ou voltar para a porta de demonstração. Ver o desacordo **X2** |
+| ~~Autenticação de verdade~~ | ✅ **Saiu daqui na v1.9.** Foi construída contra este item e o dono ratificou em 2026-08-12. Virou a **F14**, na seção 8. O que continua fora é o que ela **não** trouxe: níveis de permissão, troca de usuário, e isolamento entre clubes |
+| **Recuperação de senha e criação de conta pela tela** | A conta do operador é criada à mão no painel do provedor. Uma tela de "esqueci minha senha" precisa de e-mail transacional, e nada é enviado nesta versão |
 
 ---
 
@@ -538,6 +554,8 @@ adoção.
 | **R8** | **Retenção declarada, sem rotina de expurgo** | **Alto** | Bloqueio B2 do QA do playbook. Vale para nome, telefone e histórico financeiro, mesmo sem CPF. Guardar 5 anos e nunca apagar não é política de retenção — é acúmulo |
 | **R9** | **Quem enxerga o limite de crédito e o histórico** | Médio | Bloqueio B1 do QA. Se o operador for o responsável pelas fichas, ele vê o de todos os jogadores |
 | **R10** | **Duas pessoas dividindo o mesmo WhatsApp** | Baixo no R1 | Sem efeito aqui — a confirmação é presencial. **No R2, os dois links chegam no mesmo aparelho** e quem confirma pode ser o jogador errado. Caso B16 |
+| **R11** | **A sessão do operador cair no meio da noite** | **Alto** | Nasce com a F14. Não há modo offline: uma queda de rede que impeça a renovação do token devolve o operador para a tela de entrada às 2 da manhã, com jogadores na mesa. Duas providências: a sessão precisa durar mais que uma noite inteira de 10 horas, e o procedimento de papel do risco R2 passa a cobrir também "não consigo entrar", não só "o app não salva" |
+| **R12** | **A conta do operador não existe quando a sessão vai abrir** | Médio | Nasce com a F14. A conta é criada à mão no painel do provedor, e **não há caminho de bypass** — de propósito. Se ninguém criou antes, a noite não começa. Criar a conta entra no checklist de adoção, antes do piloto |
 
 ---
 
@@ -573,6 +591,7 @@ Escritos como coisas que dá para observar acontecendo.
 | **A24** | O relatório de uma noite com duas janelas em falta abre mostrando a **soma das duas**, e não o resultado da conferência final — mesmo quando ela fechou em zero |
 | **A25** | O painel da noite mostra, sem nenhum toque, o veredito do último checkpoint, em que momento cada falta apareceu e qual dealer estava no turno |
 | **A26** | Na mesa ao vivo, o jogador que entrou na sessão e ainda **não confirmou nenhuma ficha** aparece "de pé", fora dos dez lugares. Ele passa a ocupar um lugar no momento em que confirma a primeira retirada na tela girada |
+| **A27** | Não existe nenhuma credencial no código que o navegador baixa, e não existe caminho de entrada sem o servidor aceitar. Quando ele recusa, a tela mostra **a mensagem dele**, sem tradução |
 
 ---
 
@@ -580,7 +599,7 @@ Escritos como coisas que dá para observar acontecendo.
 
 O Caixa Vivo está pronto quando:
 
-- [ ] Os 26 critérios de aceitação passam.
+- [ ] Os 27 critérios de aceitação passam.
 - [ ] Uma sessão inteira foi simulada do começo ao fim, com pelo menos
       3 jogadores, 2 turnos de dealer e 4 lançamentos de rake.
 - [ ] Um furo foi criado de propósito na simulação e o app apontou a
@@ -665,25 +684,37 @@ tinha rejeitado. A regra que fecha essa fresta está em `AGENTS.md`.
 
 ---
 
-### 🔴 D5 — A autenticação de verdade entrou, contra a seção 13
+### ✅ D5 — A autenticação de verdade entrou contra a seção 13, e foi ratificada
 
-A seção 13 lista "Autenticação de verdade" como fora de escopo, com o motivo
-escrito: um operador, sem níveis de permissão. Ela descreve uma **porta de
+A seção 13 listava "Autenticação de verdade" como fora de escopo, com o motivo
+escrito: um operador, sem níveis de permissão. Ela descrevia uma **porta de
 demonstração** no lugar, marcada como algo que não protege nada.
 
 O app implementado tem login de verdade: e-mail e senha no Supabase Auth,
 sessão, logout, e o perfil do operador carregado de uma tabela. Existe até um
 teste exigindo que nenhuma senha continue no código.
 
-**É melhor do que o pedido, e ainda assim é uma decisão que não foi tomada.**
-Ela traz consequências que o documento não discutiu: uma conta precisa ser
-criada à mão no painel antes de qualquer sessão, e o app não abre sem ela.
-Duas saídas: ratificar a autenticação como escopo do R1 e escrever o que isso
-exige da operação, ou voltar para a porta de demonstração e adiar.
-**Decisão do dono do processo.**
+> ✅ **RATIFICADA em 2026-08-12 pelo dono do processo.** A autenticação entra no
+> escopo como **F14**, com o critério **A27**, e é **não cortável** — voltar
+> atrás devolveria a credencial para dentro do código que o navegador baixa.
 
-⚠️ O pacote exportado ainda descreve a porta de demonstração em dois lugares.
-Quem receber o pacote hoje constrói a versão que o app já abandonou.
+**O que a ratificação trouxe junto.** Ela não é só uma tela a mais: muda o que
+a operação precisa fazer antes da noite começar, e cria um jeito novo de a
+noite parar. Os dois riscos estão registrados na seção 14.
+
+| # | O que muda | Onde |
+|---|---|---|
+| 1 | A conta do operador é criada **à mão** no painel do provedor, antes da primeira sessão. Sem ela a noite não começa, e não há bypass | Risco **R12**, checklist de adoção |
+| 2 | Sem modo offline, uma queda de rede que derrube a sessão devolve o operador para a tela de entrada **no meio da noite**. A sessão precisa durar mais que 10 horas, e o procedimento de papel do R2 passa a cobrir "não consigo entrar" | Risco **R11** |
+| 3 | ✅ O componente `Login` deixou de decidir quem entra: ele pede, e quem responde é quem recebe o `onEntrar(usuario, senha)`. É o único callback do shell que devolve `Promise` | `product-plan/shell/components/Login.tsx` |
+| 4 | ✅ A credencial saiu do protótipo e do pacote. Os três `Login.tsx` — protótipo, pacote e app — voltaram a ser byte a byte idênticos | Feito em 2026-08-12 |
+| 5 | ✅ A prévia do Design OS não autentica, e agora diz isso: ela não tem servidor para perguntar, e o aceite dela existe só para a prévia ter porta de entrada | `src/simulacao/AppSimulado.tsx` |
+
+**A lição, que é a mesma da D4 e por outro caminho.** Aqui o código não
+inventou uma tela — ele **melhorou** uma. E mesmo uma melhora precisa de
+decisão, porque ela carrega consequência que a interface não mostra: os riscos
+R11 e R12 não existiam ontem, e ninguém teria olhado para eles se a mudança
+tivesse passado como detalhe de implementação.
 
 ---
 
@@ -735,7 +766,8 @@ Registrado para não haver expectativa errada.
 | Funcionalidade F12 e critério A25 | ⚠️ Sem origem no vault. Nasceu do protótipo |
 | Divergência D4 (mesa visual) | Contradiz a própria seção 13 da v1.6. **Ratificada em 2026-08-12** |
 | Funcionalidade F13 e critério A26 | ⚠️ Sem origem no vault. Nasceu do protótipo, ratificada na v1.8. A leitura da N2 que ela mostra vem da `DEC-006` |
-| Divergência D5 (autenticação) | ⚠️ Contradiz a seção 13 deste documento. Sem decisão |
+| Divergência D5 (autenticação) | Contradizia a seção 13 deste documento. **Ratificada em 2026-08-12** |
+| Funcionalidade F14, critério A27, riscos R11 e R12 | ⚠️ Sem origem no vault. Nasceu da construção, ratificada na v1.9. A `DEC-001` já previa servidor; o que ela não previa era o operador precisar de conta antes da noite |
 | Dois motivos separados, seção 9 | ARV-Limites-de-Autoridade A1 (N10) e A2 (N16) |
 
 ---
@@ -758,7 +790,7 @@ tentativa de refutação. As entradas caem daqui quando forem fechadas.
 | # | Desacordo | Gravidade | Estado |
 |---|---|---|---|
 | **X1** | O pacote exportado mandava construir a mesa ao vivo e a rota `/ao-vivo` **sem repassar a pendência** aberta aqui — `instructions/incremental/04-jogadores-e-mesa.md:49`, `instructions/incremental/01-shell.md:61`, `shell/components/navigation.ts:18` | Alta | ✅ **fechado** pela ratificação da **D4**. As instruções agora dizem que F13 é a primeira a cair e que `lugar` precisa de campo próprio |
-| **X2** | Autenticação de verdade implementada (`caixa-vivo/src/auth/useOperador.ts:33`) contra a seção 13 | Alta | 🔴 **decisão do dono** — ver **D5** |
+| **X2** | Autenticação de verdade implementada (`caixa-vivo/src/auth/useOperador.ts:33`) contra a seção 13 | Alta | ✅ **fechado** pela ratificação da **D5** em 2026-08-12. Virou F14/A27, com os riscos R11 e R12. A credencial saiu do protótipo e do pacote; os três `Login.tsx` voltaram a ser idênticos |
 | **X3** | `product-plan/design-system/tokens.css` tinha 69 linhas e trazia **só variáveis**. As regras `.cv-*` que os componentes aplicam (`.cv-panel`, `.cv-btn`, `.cv-num`, `.cv-engraved`…) e as três fontes não vinham. O app subiu sem folha de estilo e colou 506 linhas do `index.css` do Design OS | Crítica | ✅ **fechado** em 2026-08-12: o arquivo exportado passou a 520 linhas. Conferido — os **53** nomes `cv-*` usados pelos componentes estão definidos |
 | **X4** | Os dois motivos de exceção (N10 e N16) continuam num campo só. `reducer.ts:336` junta com `' · '`; `persistirDelta.ts:131` separa por chute. Motivo com `·` dentro perde o pedaço do meio | Média | 🟠 aberto. Já mandado pela seção 9. Falta implementar |
 | **X5** | O **consentimento** nunca sai da tela: a ação `cadastrar-jogador` não tem o campo, e `persistirDelta.ts:42` carimba `consentimento_em` em todo cadastro. Quem chamar a regra direto registra consentimento que ninguém deu. Quebra a **A15** | Média | 🟠 aberto. Já mandado pela seção 9. Falta implementar |
@@ -780,6 +812,9 @@ tentativa de refutação. As entradas caem daqui quando forem fechadas.
 | 2026-08-12 | `TurnoDaJanela` definido em `conciliacao-e-relatorio/types.ts`; `Veredito` deixou de ser declarado duas vezes em `data-shapes/overview.ts` | Correção de contrato quebrado. Os tipos já eram esses — eles só não compilavam. Fecha **X11** |
 | 2026-08-12 | `lugares`, `emPe`, `dealer`, `turno` e `fichasEmJogo` entraram no dado de amostra da mesa; jogador `Léo Bastos` acrescentado sem ficha confirmada | Dado de amostra, não regra. O Léo existe para a amostra mostrar a **A26** acontecendo: entrou na sessão, tem retirada aguardando, e por isso está de pé |
 | 2026-08-12 | `product-overview.md` ganhou F12, F13 e a ordem de corte | Alinhamento de documento com este PRD. Fecha **X10** |
+| 2026-08-12 | O `Login.tsx` do protótipo e do pacote virou cópia do app: sem `CREDENCIAL_DA_DEMO`, com `onEntrar` devolvendo `Promise` e estado de "Entrando…" | **Isto muda produto** — é a F14, e está registrado na seção 8, não aqui. A linha fica para marcar que os três arquivos voltaram a ser byte a byte idênticos, restaurando a regra de cópia do plano |
+| 2026-08-12 | `src/simulacao/AppSimulado.tsx` passou a fornecer um `onEntrar` assíncrono que aceita qualquer nome | Prévia, não produto. Ela não tem servidor para perguntar, e o comentário diz isso. O que decide no produto é o Supabase |
+| 2026-08-12 | `product/shell/spec.md`, `product-plan/README.md` e `product-plan/shell/README.md` pararam de descrever a porta de demonstração | Alinhamento de documento com a F14. Sem essa passada, quem recebesse o pacote construiria a versão que o app já abandonou |
 
 ---
 
@@ -787,6 +822,7 @@ tentativa de refutação. As entradas caem daqui quando forem fechadas.
 
 | Versão | Data | O que mudou |
 |---|---|---|
+| **v1.9** | 2026-08-12 | ✅ **D5 ratificada** pelo dono do processo: a autenticação de verdade entra como **F14**, com o critério **A27** e o estado de tela **Entrada**, e é **não cortável** — voltar atrás devolveria a credencial para dentro do código que o navegador baixa. Ela sai de "fora do escopo" na seção 13, onde ficam agora só os itens que ela **não** trouxe: níveis de permissão, troca de usuário e recuperação de senha pela tela. Dois riscos novos, que são a consequência honesta da decisão: **R11**, a sessão cair no meio da noite sem modo offline, e **R12**, a conta do operador não existir quando a noite vai começar. A credencial de demonstração saiu do protótipo e do pacote, e os três `Login.tsx` voltaram a ser byte a byte idênticos. Fecha o desacordo **X2**. ⚠️ **Pendente de aprovação** |
 | **v1.8** | 2026-08-12 | **Auditoria cruzada entre PRD, protótipo e app implementado, e a rotina que impede isso de acontecer de novo.** ✅ **D4 ratificada** pelo dono do processo: a mesa ao vivo entra como **F13**, com o critério **A26** e o estado de tela próprio, e passa a ser a primeira a cair na ordem de corte — a D4 lista os quatro itens que a ratificação ainda obriga, porque a tela nasceu no código e nunca voltou para as specs. 🔴 Nasce a **D5**: a autenticação de verdade foi construída contra a seção 13 e espera decisão. Criada a seção **Registro de mudanças do sistema**, com os dez desacordos abertos (X1 a X10) e as mudanças que não mexeram no produto. O PRD entra em **git** pela primeira vez, e um **Stop hook** passa a impedir que código de produto fique mais novo que este documento. ⚠️ **Pendente de aprovação** |
 | **v1.7** | 2026-08-12 | **Auditoria contra o protótipo — 6 desvios fechados.** A conta do checkpoint foi escrita (seção 7), com a pendência de confirmação marcada em vermelho; os dois motivos de exceção ganharam campos separados na seção 9; **N19** e **A24** definem a divergência da noite como a soma dos checkpoints; **F12** e **A25** registram o painel da noite, que existia sem documento; a autenticação entra explicitamente em fora de escopo, com a porta de demonstração descrita; **D4** registra que a mesa visual foi construída contra o que estava escrito, e devolve a decisão ao dono do processo. Ordem de corte atualizada. ⚠️ **Pendente de aprovação** |
 | v1.0 | 2026-08-11 | Versão inicial, aprovada após brainstorm de 3 alternativas |
