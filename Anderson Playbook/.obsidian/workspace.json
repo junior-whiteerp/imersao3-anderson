@@ -1,0 +1,218 @@
+{
+  "main": {
+    "id": "5ace193cb564f7a5",
+    "type": "split",
+    "children": [
+      {
+        "id": "80c7a63644f85752",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d0e271800e0ba36e",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Visualização em gráfico"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "8a1138a589cdaa9a",
+    "type": "split",
+    "children": [
+      {
+        "id": "05adb4ea72e22cc5",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a8f3600f097325e3",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorador de arquivos"
+            }
+          },
+          {
+            "id": "f0411986d1a05da0",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Procurar"
+            }
+          },
+          {
+            "id": "de0f77ddc0258785",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Marcadores"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "7382034732b659b8",
+    "type": "split",
+    "children": [
+      {
+        "id": "f72c3e181a4333e5",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "7756ce7798780d36",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Links inversos"
+            }
+          },
+          {
+            "id": "95959851dce2d838",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Links de saída"
+            }
+          },
+          {
+            "id": "0c6ed292e798680c",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Etiquetas"
+            }
+          },
+          {
+            "id": "eab7cb3ebd3bfd59",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Todas as propriedades"
+            }
+          },
+          {
+            "id": "f250f5e4b9700fcf",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Sumário"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Abrir a troca rápida": false,
+      "graph:Abrir visualização em gráfico": false,
+      "canvas:Criar novo canvas": false,
+      "daily-notes:Abrir a nota de hoje": false,
+      "templates:Inserir modelo": false,
+      "command-palette:Abrir paleta de comandos": false,
+      "bases:Criar nova base": false
+    }
+  },
+  "active": "d0e271800e0ba36e",
+  "lastOpenFiles": [
+    "70-Revisoes/checklist-confirmacao-r1.md",
+    "10-SOPs/SOP-Contingencia-de-Sistema.md",
+    "20-Decisoes/DEC-006-aceite-presencial-no-r1.md",
+    "50-Curso/respostas-checkpoint-modulo3.md",
+    "docs/plano-adocao-v1.md",
+    "docs/continuous-improvement.md",
+    "docs/governance.md",
+    "docs/adoption-plan.md",
+    "docs",
+    "80-Adocao/PLANO-Adocao-StackTrack.md",
+    "80-Adocao",
+    "QA/relatorio-qa-v2.md",
+    "QA/relatorio-qa-v1.md",
+    "QA/checklist-qa-v1.md",
+    "QA/casos-de-teste-v1.md",
+    "QA",
+    "70-Revisoes/relatorio-qa-v1.md",
+    "70-Revisoes/casos-de-teste-v1.md",
+    "70-Revisoes/checklist-qa-v1.md",
+    "70-Revisoes/QA-Playbook-2026-08-11.md",
+    "50-Curso/respostas-checkpoint-modulo2.md",
+    "20-Decisoes/DEC-001-arquitetura-cliente-web.md",
+    "10-SOPs/ARV-Limites-de-Autoridade.md",
+    "80-Experimentos/ANALISE-Consistencia-A-vs-B.md",
+    "80-Experimentos/SOP-Cadastro-de-Jogador-B-com-pacote.md",
+    "80-Experimentos/SOP-Cadastro-de-Jogador-A-prompt-minimo.md",
+    "80-Experimentos",
+    "60-Contexto/PKG-Geracao-de-SOP-v2.md",
+    "70-Revisoes/REV-SOPs-2026-08-11.md",
+    "70-Revisoes",
+    "20-Decisoes/DEC-005-dealer-global-entre-clubes.md",
+    "60-Contexto",
+    "50-Curso",
+    "90-Templates",
+    "40-Mockups",
+    "30-Briefings"
+  ]
+}

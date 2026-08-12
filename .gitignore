@@ -1,0 +1,12 @@
+# Este repositório versiona a GOVERNANÇA do StackTrack: o PRD e o playbook.
+# O código vive em repositórios próprios e fica de fora de propósito — cada um
+# tem seu histórico, e misturá-los faria o diff do PRD sumir no meio de build.
+
+imersao-teste-design/
+caixa-vivo/
+
+# Ruído do sistema e de ferramenta
+.DS_Store
+node_modules/
+*.zip
+.tostudy/
