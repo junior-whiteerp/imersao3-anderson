@@ -4,23 +4,22 @@ import { FundoDePoker } from './FundoDePoker'
 import { MarcaStackTrack } from './MarcaStackTrack'
 
 /**
- * ⚠️ ISTO NÃO É AUTENTICAÇÃO. É UMA PORTA DE DEMONSTRAÇÃO.
+ * A porta do caixa.
  *
- * O par abaixo viaja dentro do JavaScript que o navegador baixa — qualquer
- * pessoa lê em dois cliques no DevTools. Ele existe para a demo ter uma porta
- * de entrada e para o desenho da tela existir, não para proteger nada.
+ * Esta tela não decide mais quem entra: ela pergunta, e quem responde é o
+ * Supabase, do outro lado da rede. O que ela faz é o que sempre fez bem —
+ * pedir os dois campos, mostrar o que deu errado e não deixar o operador
+ * clicar duas vezes enquanto a resposta não chega.
  *
- * O PRD do Caixa Vivo coloca login fora do escopo da release 1: "um operador,
- * um clube, uma sessão aberta, sem níveis de permissão". Quando a autenticação
- * de verdade entrar, ela precisa de servidor, senha com hash e sessão — e esta
- * tela vira só a camada visual disso.
+ * A mensagem de erro é a que veio de fora, sem tradução. Trocar
+ * "e-mail não confirmado" por "usuário ou senha não confere" faria o operador
+ * tentar a senha de novo a noite inteira contra um problema que não é a senha.
  */
-const CREDENCIAL_DA_DEMO = { usuario: 'anderson', senha: '3129' } as const
-
 export interface LoginProps {
   /** Nome do clube, no rodapé. Contexto de onde o operador está entrando. */
   clube?: string
-  onEntrar: (usuario: string) => void
+  /** Lança quando a autenticação recusa. A mensagem do erro vai para a tela. */
+  onEntrar: (usuario: string, senha: string) => Promise<void>
 }
 
 export function Login({ clube = 'Clube Paris', onEntrar }: LoginProps) {
@@ -28,22 +27,20 @@ export function Login({ clube = 'Clube Paris', onEntrar }: LoginProps) {
   const [senha, setSenha] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+  const [enviando, setEnviando] = useState(false)
 
-  function enviar(evento: FormEvent) {
+  async function enviar(evento: FormEvent) {
     evento.preventDefault()
-    const confere =
-      usuario.trim().toLowerCase() === CREDENCIAL_DA_DEMO.usuario &&
-      senha === CREDENCIAL_DA_DEMO.senha
-
-    if (!confere) {
-      // Uma mensagem só para os dois campos: dizer qual dos dois errou entrega
-      // metade da resposta a quem está tentando adivinhar.
-      setErro('Usuário ou senha não confere.')
-      setSenha('')
-      return
-    }
     setErro(null)
-    onEntrar(usuario.trim())
+    setEnviando(true)
+    try {
+      await onEntrar(usuario.trim(), senha)
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Não foi possível entrar.')
+      setSenha('')
+    } finally {
+      setEnviando(false)
+    }
   }
 
   const campo =
@@ -168,10 +165,10 @@ export function Login({ clube = 'Clube Paris', onEntrar }: LoginProps) {
 
           <button
             type="submit"
-            disabled={!usuario.trim() || !senha}
+            disabled={enviando || !usuario.trim() || !senha}
             className="cv-ch-live cv-btn cv-shine mt-6 h-14 w-full text-[14.5px] hover:-translate-y-px focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-35 disabled:saturate-0 disabled:hover:translate-y-0"
           >
-            Entrar no caixa
+            {enviando ? 'Entrando…' : 'Entrar no caixa'}
             <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
           </button>
 
@@ -180,14 +177,6 @@ export function Login({ clube = 'Clube Paris', onEntrar }: LoginProps) {
           </p>
         </form>
 
-        {/* A dica existe porque isto é uma demonstração, e esconder a senha de
-            quem vai apresentar não protege nada — só atrapalha. */}
-        <p className="cv-text-soft mt-5 text-center text-[11px] leading-relaxed">
-          Demonstração ·{' '}
-          <span className="cv-text font-cv-mono cv-num">
-            {CREDENCIAL_DA_DEMO.usuario} / {CREDENCIAL_DA_DEMO.senha}
-          </span>
-        </p>
       </div>
     </div>
   )

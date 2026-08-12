@@ -19,6 +19,13 @@ export default defineConfig({
     env: {
       VITE_SUPABASE_URL: 'http://127.0.0.1:54321',
       VITE_SUPABASE_ANON_KEY: 'chave-anonima-de-teste',
+      /**
+       * `agoraEmMinutos` conta a partir da meia-noite LOCAL — é o fuso do clube
+       * que define quando a noite começou, não o UTC. Sem fixar o fuso aqui, os
+       * testes do relógio passariam nesta máquina e quebrariam num CI em UTC,
+       * que é o pior jeito de descobrir isso.
+       */
+      TZ: 'America/Sao_Paulo',
     },
   },
 })
