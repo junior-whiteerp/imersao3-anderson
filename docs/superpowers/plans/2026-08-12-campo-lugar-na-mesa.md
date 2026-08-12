@@ -641,13 +641,22 @@ done
 ```
 Expected: `modelo.ts pacote=igual simulacao=igual` e `reducer.ts pacote=igual simulacao=igual`.
 
-- [ ] **Step 3: Ver o que o Design OS acusa**
+- [ ] **Step 3: Confirmar que o Design OS continua compilando**
 
 ```bash
 cd /Users/juniorcesar/imersao3/imersao-teste-design
-npx tsc -b --noEmit
+npx tsc -b --force --noEmit
 ```
-Expected: **FAIL**, em `src/simulacao/vistas.ts` — `LugarOcupado` ainda não tem `validou`, e a vista ainda deriva o lugar da ordem. Isso é esperado e é o trabalho das Tasks 5 e 6. Anote os erros; eles são a lista do que falta.
+Expected: **PASS**, exit 0.
+
+> ⚠️ **Correção de 2026-08-12, feita durante a execução.** Este passo dizia
+> "Expected: FAIL, em `vistas.ts`". Estava errado, e a Task 3 provou: `lugar` é
+> **opcional**, então nada quebra ao acrescentá-lo; e `validou`, que é o campo
+> que de fato quebra o `vistas.ts`, só nasce na **Task 5**. Não há erro nenhum
+> a anotar aqui.
+>
+> Use `--force`: sem ele o `tsc -b` consulta o cache incremental e pode
+> devolver verde sem checar nada.
 
 - [ ] **Step 4: Commit**
 
@@ -1162,12 +1171,29 @@ md5 -q "$A" \
 ```
 Expected: `1` — um hash só para os três arquivos.
 
-- [ ] **Step 4: Conferir que o app compila**
+- [ ] **Step 4: Conferir os dois repositórios — e um deles fica vermelho de propósito**
 
 ```bash
-cd /Users/juniorcesar/imersao3/caixa-vivo && npx tsc -b --noEmit
+cd /Users/juniorcesar/imersao3/caixa-vivo && npx tsc -b --force --noEmit
 ```
 Expected: PASS — o app não renderiza `MesaVisual` em nenhuma tela (a tela Ao vivo é fatia própria), então o campo novo não quebra nada lá.
+
+```bash
+cd /Users/juniorcesar/imersao3/imersao-teste-design && npx tsc -b --force --noEmit
+```
+Expected: **FAIL**, e isto é o resultado correto desta tarefa.
+
+> ⚠️ **Adicionado em 2026-08-12, durante a execução.** `validou` é obrigatório,
+> e `src/simulacao/vistas.ts` monta `LugarOcupado` sem ele — então o Design OS
+> **para de compilar aqui e só volta na Task 6**, que é quem ensina a vista a
+> preencher o campo.
+>
+> Sem este passo, a Task 5 fecharia verde olhando só o `caixa-vivo` e deixaria
+> o outro repositório quebrado sem ninguém ver. **Copie a lista de erros para o
+> relatório**: ela é o inventário exato que a Task 6 tem de zerar.
+>
+> Se o `tsc` do Design OS acusar erro em **qualquer arquivo além de**
+> `src/simulacao/vistas.ts`, pare e reporte — aí é problema de verdade.
 
 - [ ] **Step 5: Commit nos dois repositórios**
 
@@ -1404,13 +1430,30 @@ Passa a ser:
               </p>
 ```
 
-- [ ] **Step 5: Compilar e ver passar**
+- [ ] **Step 5: Compilar e ver passar — e provar que o verde vale**
 
 ```bash
 cd /Users/juniorcesar/imersao3/imersao-teste-design
-npx tsc -b --noEmit
+npx tsc -b --force --noEmit
 ```
-Expected: PASS, sem nenhum erro. Os erros que a Task 3 Step 3 anotou devem ter todos sumido.
+Expected: PASS, exit 0. Os erros que a **Task 5** anotou têm de ter sumido todos.
+
+> ⚠️ **Corrigido em 2026-08-12.** Este passo dizia "os erros que a Task 3
+> anotou". A Task 3 não anota erro nenhum — quem quebra o build é a Task 5.
+
+**Agora prove que o verde não é vazio.** Um `tsc` que não checa o arquivo passa
+verde do mesmo jeito, e isso esconderia o defeito em vez de mostrar:
+
+```bash
+cp src/simulacao/vistas.ts /tmp/vistas.bak
+printf '\nconst provaDoTsc: number = "isto deveria falhar"\n' >> src/simulacao/vistas.ts
+npx tsc -b --force --noEmit 2>&1 | head -3
+cp /tmp/vistas.bak src/simulacao/vistas.ts && rm /tmp/vistas.bak
+npx tsc -b --force --noEmit && echo "restaurado e verde"
+```
+Expected: o comando do meio **acusa** `vistas.ts(...): error TS2322`, e depois de
+restaurar volta a exit 0. Se ele não acusar, o `vistas.ts` não está sendo
+checado e o verde do Step 5 não prova nada — pare e reporte.
 
 - [ ] **Step 6: Olhar a mesa no navegador**
 
