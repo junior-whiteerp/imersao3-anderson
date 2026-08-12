@@ -55,11 +55,21 @@ só o que nasceu ou mudou.
 
 ### Regras de ouro deste repositório
 
-- **Não edite componente copiado.** Arquivos sob `src/sections/`, `src/shell/`
-  e `src/regras/` são cópias de `product-plan/`. Se um comportamento exigir
-  mudar um deles, **pare e registre** — o conserto é no Design OS, não aqui.
-  (Exceção já registrada: `shell/components/Login.tsx`, que trocou a porta de
-  demonstração por autenticação real.)
+- **Não edite componente copiado por conta própria.** Arquivos sob
+  `src/sections/`, `src/shell/` e `src/regras/` são cópias de `product-plan/`.
+  Se um comportamento exigir mudar um deles, **pare e registre** — um conserto
+  local vira divergência silenciosa entre o app, o pacote e o protótipo, e só
+  aparece numa auditoria.
+
+  **Mudança coordenada é caminho legítimo, e tem três exigências:** um plano
+  aprovado que diga por quê; a alteração caindo nas **três cópias no mesmo
+  passo**; e a igualdade provada com `diff -q` ou `md5` antes do commit. As
+  regras podem ser desenvolvidas aqui, porque é onde o Vitest roda — mas
+  nunca ficam só aqui.
+
+  Duas mudanças coordenadas já feitas: `shell/components/Login.tsx`, que
+  trocou a porta de demonstração por autenticação real (F14 do PRD), e o campo
+  `lugar` da Participação (item 4 da divergência D4).
 - **Sem modo de demonstração.** Sem credencial do Supabase o app não sobe, de
   propósito. Um app que cai para dados de exemplo quando o banco some fica com
   cara de funcionando enquanto o caixa da noite não é registrado em lugar nenhum.
