@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/juniorcesar/imersao3/scripts/prd-gate.sh",
+            "timeout": 20,
+            "statusMessage": "Conferindo o PRD…"
+          }
+        ]
+      }
+    ]
+  }
+}
