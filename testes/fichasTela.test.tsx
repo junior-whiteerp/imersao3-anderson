@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { FichasTela } from '@/telas/FichasTela'
 import * as estado from '@/estado/NoiteProvider'
@@ -19,17 +19,31 @@ const base = {
   seq: 1,
 }
 
-function montar(noite: unknown, despachar = vi.fn()) {
+function montar(noite: unknown, despachar = vi.fn(), participacaoId: string | null = 'p1') {
   vi.spyOn(estado, 'useNoite').mockReturnValue({
     noite,
     estado: 'pronto',
     erro: null,
     recarregar: vi.fn(),
     despachar,
+    limparAviso: vi.fn(),
   } as never)
-  render(<FichasTela participacaoId="p1" onSelecionar={vi.fn()} />)
+  render(<FichasTela participacaoId={participacaoId} onSelecionar={vi.fn()} />)
   return despachar
 }
+
+/** Uma retirada aguardando confirmação, do jeito que o reducer a produz. */
+const aguardandoDe = (id: string, valor: number) => ({
+  id,
+  sessaoId: 'S',
+  tipo: 'retirada',
+  valor,
+  participacaoId: 'p1',
+  turnoId: 't1',
+  horaOcorrencia: 1150,
+  horaDigitacao: 1150,
+  situacao: 'aguardando',
+})
 
 describe('FichasTela', () => {
   it('N2 — a tela girada aparece com a retirada aguardando, e ocupa o aparelho', () => {
@@ -117,6 +131,106 @@ describe('FichasTela', () => {
         motivo: 'Cliente antigo, dono liberou.',
       })
     )
+  })
+
+  it('N6/A9 — dá para lançar outra ficha com uma já esperando confirmação', async () => {
+    const despachar = montar({ ...base, movimentacoes: [aguardandoDe('m1', 1000)] })
+
+    // Sem este caminho a tela girada ocupa o aparelho e a metade "aguardando"
+    // do limite nunca acontece na interface.
+    await userEvent.click(screen.getByRole('button', { name: /pediu mais fichas/i }))
+    expect(screen.getByText(/já há/i)).toHaveTextContent(/R\$ 1\.000/)
+
+    for (const t of ['5', '0', '0']) {
+      await userEvent.click(screen.getByRole('button', { name: t }))
+    }
+    await userEvent.click(screen.getByRole('button', { name: /girar a tela/i }))
+
+    expect(despachar).toHaveBeenCalledWith(
+      expect.objectContaining({ tipo: 'lancar-retirada', valor: 500 })
+    )
+  })
+
+  it('nenhum pendente fica invisível: o segundo aparece com saída própria', async () => {
+    const despachar = montar({
+      ...base,
+      movimentacoes: [aguardandoDe('m1', 1000), aguardandoDe('m2', 500)],
+    })
+
+    // O mais antigo ocupa a tela girada; o outro não pode sumir.
+    const outros = screen.getByRole('region', { name: /também esperando/i })
+    expect(outros).toHaveTextContent(/R\$ 500/)
+
+    await userEvent.click(within(outros).getByRole('button', { name: /^confirmar$/i }))
+    expect(despachar).toHaveBeenCalledWith({
+      tipo: 'confirmar',
+      movimentacaoId: 'm2',
+      confirmacao: 'presencial',
+    })
+  })
+
+  it('recusar não volta em silêncio: a tela para e pede o relançamento', async () => {
+    // Mock vivo: `aplicar` recarrega a noite do banco depois de cada ação, e a
+    // recusa tira a movimentação de "aguardando". Com um mock estático a tela
+    // girada nunca sairia — e o teste estaria medindo o mock, não a tela.
+    let noiteAtual: Record<string, unknown> = {
+      ...base,
+      movimentacoes: [aguardandoDe('m1', 1000)],
+    }
+    const despachar = vi.fn(async (acao: { tipo: string; movimentacaoId?: string }) => {
+      if (acao.tipo !== 'recusar') return
+      noiteAtual = {
+        ...noiteAtual,
+        movimentacoes: (noiteAtual.movimentacoes as { id: string }[]).map((m) =>
+          m.id === acao.movimentacaoId ? { ...m, situacao: 'recusada' } : m
+        ),
+      }
+    })
+    vi.spyOn(estado, 'useNoite').mockImplementation(
+      () =>
+        ({
+          noite: noiteAtual,
+          estado: 'pronto',
+          erro: null,
+          recarregar: vi.fn(),
+          despachar,
+          limparAviso: vi.fn(),
+        }) as never
+    )
+    render(<FichasTela participacaoId="p1" onSelecionar={vi.fn()} />)
+
+    await userEvent.click(screen.getByRole('button', { name: /não reconheço/i }))
+
+    expect(await screen.findByText(/^recusado$/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /lançar de novo/i })).toBeInTheDocument()
+    // E não volta ao seletor: relançar é para a MESMA pessoa.
+    expect(screen.getByRole('heading', { name: 'Rafa' })).toBeInTheDocument()
+  })
+
+  it('A18 — com dois nomes iguais na mesa, o WhatsApp separa os dois', () => {
+    montar(
+      {
+        ...base,
+        jogadores: [
+          { id: 'j1', nome: 'Rafa', whatsapp: '11988124470', limite: 3000 },
+          { id: 'j2', nome: 'Rafa', whatsapp: '11977003311', limite: 2000 },
+        ],
+        participacoes: [
+          { id: 'p1', sessaoId: 'S', jogadorId: 'j1', entrouAs: 1145, encerrada: false },
+          { id: 'p2', sessaoId: 'S', jogadorId: 'j2', entrouAs: 1146, encerrada: false },
+        ],
+      },
+      vi.fn(),
+      null // seletor: ninguém escolhido ainda
+    )
+
+    expect(screen.getByText('···4470')).toBeInTheDocument()
+    expect(screen.getByText('···3311')).toBeInTheDocument()
+  })
+
+  it('nome único na mesa não expõe o WhatsApp de ninguém', () => {
+    montar(base, vi.fn(), null)
+    expect(screen.queryByText(/···/)).not.toBeInTheDocument()
   })
 
   it('N16 — contingência só sai com motivo escrito', async () => {

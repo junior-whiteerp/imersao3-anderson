@@ -3,6 +3,7 @@ import { AppShell, Login, NAVEGACAO_PADRAO } from '@/shell/components'
 import { NoiteProvider, useNoite } from '@/estado/NoiteProvider'
 import { useOperador } from '@/auth/useOperador'
 import { statusDaFaixa } from '@/telas/faixa'
+import { Aviso } from '@/telas/Aviso'
 import { SessaoTela } from '@/telas/SessaoTela'
 import { MesaTela } from '@/telas/MesaTela'
 import { FichasTela } from '@/telas/FichasTela'
@@ -27,6 +28,9 @@ function Conteudo({ operador, sair }: { operador: { nome: string }; sair: () => 
       onStatusClick={() => setRota('/caixa')}
       onLogout={sair}
     >
+      {/* Fora do if: a recusa de uma regra chega junto com a noite já pronta,
+          e ela não pode sumir porque a tela trocou. */}
+      <Aviso />
       {estado === 'carregando' ? (
         <p className="cv-text-soft p-8 text-center text-[13px]">Carregando a noite…</p>
       ) : estado === 'erro' ? (

@@ -23,6 +23,8 @@ interface Contexto {
   erro: string | null
   recarregar: () => Promise<void>
   despachar: (acao: Acao) => Promise<void>
+  /** Apaga a fala do app depois que ela foi lida. */
+  limparAviso: () => void
 }
 
 const Ctx = createContext<Contexto | null>(null)
@@ -95,8 +97,23 @@ export function NoiteProvider({
     }
   }
 
+  /**
+   * O aviso é memória, não registro da noite — quem o cria é o `reducer`, e
+   * `aplicar` o carrega de volta à mão depois de recarregar do banco.
+   *
+   * Por isso apagá-lo é estado local, e não a ação `limpar-aviso` do reducer
+   * como na prévia do Design OS: lá o despacho é instantâneo, aqui ele custaria
+   * uma ida inteira ao Postgres (ler a noite, reduzir, gravar delta, reler) só
+   * para tirar uma tarja da tela.
+   */
+  const limparAviso = useCallback(() => {
+    setNoite((n) => (n.aviso === null ? n : { ...n, aviso: null }))
+  }, [])
+
   return (
-    <Ctx.Provider value={{ noite, estado, erro, recarregar, despachar }}>{children}</Ctx.Provider>
+    <Ctx.Provider value={{ noite, estado, erro, recarregar, despachar, limparAviso }}>
+      {children}
+    </Ctx.Provider>
   )
 }
 
