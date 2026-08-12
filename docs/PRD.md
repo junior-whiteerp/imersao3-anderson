@@ -1,6 +1,6 @@
 ---
 owner: Anderson
-version: v1.9
+version: v1.10
 updated: 2026-08-12
 status: pendente de aprovação — v1.6 é a última aprovada
 tipo: prd
@@ -305,7 +305,7 @@ Descritos em português. A modelagem técnica não faz parte deste documento.
 | **Clube** | Nome, percentual do rake que vai para o dealer |
 | **Sessão** | Clube, hora de abertura, hora de encerramento, caixa inicial de fichas, situação |
 | **Jogador** | Nome ou apelido e **WhatsApp** (obrigatórios), CPF (opcional), limite de crédito, data do consentimento, situação |
-| **Participação** | Qual jogador, em qual sessão, quando entrou, quando saiu |
+| **Participação** | Qual jogador, em qual sessão, quando entrou, quando saiu, e **em que lugar da mesa** — 1 a 10, vazio enquanto ele estiver de pé |
 | **Dealer** | Nome |
 | **Turno** | Qual dealer, em qual sessão, início e fim |
 | **Movimentação** | Sessão, participação, turno, tipo, valor, hora em que aconteceu, hora em que foi digitada, situação, quem lançou, e **duas justificativas separadas** — ver abaixo |
@@ -673,7 +673,26 @@ feitos, o desacordo continua vivo mesmo com a decisão tomada.
 | 1 | A mesa não existia na spec da seção nem na do shell — a navegação do shell listava seis abas | `product/sections/jogadores-e-mesa/spec.md`, `product/shell/spec.md` | ✅ feito em 2026-08-12 |
 | 2 | O componente saiu no pacote **sem dado de amostra**: não havia array `lugares`, então ele não desenhava | `product/sections/jogadores-e-mesa/data.json` e o `sample-data.json` exportado | ✅ feito em 2026-08-12 |
 | 3 | O tipo `LugarOcupado` era prometido nos contratos e não estava no `types.ts` da seção nem no `overview.ts` | `product-plan/data-shapes/`, `types.ts` da seção | ✅ feito em 2026-08-12 |
-| 4 | **Não existe origem para o número do lugar.** No protótipo ele é derivado da ordem de confirmação (`src/simulacao/vistas.ts`), arquivo que fica fora do pacote. No produto, `lugar` precisa ser **campo próprio da Participação**, gravado na primeira confirmação — senão dois jogadores trocam de lugar sozinhos quando um fecha a conta | `product-plan/regras/modelo.ts`, `caixa-vivo/supabase/migrations/` | 🔴 **aberto** — muda o `reducer` e o esquema do banco, precisa de plano próprio |
+| 4 | **Não existia origem para o número do lugar.** No protótipo ele era derivado da ordem de confirmação (`src/simulacao/vistas.ts`), arquivo que fica fora do pacote — e assim dois jogadores trocavam de lugar sozinhos quando um fechava a conta | `product-plan/regras/modelo.ts`, `caixa-vivo/supabase/migrations/` | 🟡 **em andamento** — a regra e o banco estão prontos; falta a camada visual. Ver abaixo |
+
+#### Onde o item 4 está, em 2026-08-12
+
+Plano em `docs/superpowers/plans/2026-08-12-campo-lugar-na-mesa.md`, oito
+tarefas. Quatro fecharam, com revisão independente em cada uma.
+
+| Feito | O que ficou de pé |
+|---|---|
+| `Participacao.lugar?: number` — 1 a 10, ausente = de pé | O operador escolhe a cadeira; ela não é mais derivada de ordem |
+| A ação `sentar` aceita `lugar`, com seis guardas | Quem está de pé ganha cadeira **sem virar participação nova** — é o caminho de quem entrou pela aba Mesa |
+| Coluna, `check (1..10)` e **índice parcial** no Postgres | Um jogador por cadeira entre contas **abertas**. Encerrar libera a cadeira e a linha encerrada guarda o número (N13) |
+| As três cópias de `modelo.ts` e `reducer.ts` idênticas de novo | A regra de cópia do plano da fatia vertical, restaurada e provada por hash |
+
+**Falta a camada visual**, e por isso o critério **A26 ainda não foi emendado**:
+o estado *reservado* — cadeira com dono que ainda não confirmou ficha — está
+desenhado no plano mas **não existe em tela**. Enquanto não existir, o A26
+segue valendo como está escrito na seção 15.
+
+Suíte do `caixa-vivo` inteira verde: 19 arquivos, 83 testes, 0 falhas.
 
 **A lição, que vale além da D4.** O desacordo não foi construir a tela — foi
 construí-la **só no código**. O `/export-product` gera o pacote a partir do que
@@ -815,6 +834,18 @@ tentativa de refutação. As entradas caem daqui quando forem fechadas.
 | 2026-08-12 | O `Login.tsx` do protótipo e do pacote virou cópia do app: sem `CREDENCIAL_DA_DEMO`, com `onEntrar` devolvendo `Promise` e estado de "Entrando…" | **Isto muda produto** — é a F14, e está registrado na seção 8, não aqui. A linha fica para marcar que os três arquivos voltaram a ser byte a byte idênticos, restaurando a regra de cópia do plano |
 | 2026-08-12 | `src/simulacao/AppSimulado.tsx` passou a fornecer um `onEntrar` assíncrono que aceita qualquer nome | Prévia, não produto. Ela não tem servidor para perguntar, e o comentário diz isso. O que decide no produto é o Supabase |
 | 2026-08-12 | `product/shell/spec.md`, `product-plan/README.md` e `product-plan/shell/README.md` pararam de descrever a porta de demonstração | Alinhamento de documento com a F14. Sem essa passada, quem recebesse o pacote construiria a versão que o app já abandonou |
+| 2026-08-12 | O campo `lugar` na Participação, a ação `sentar` com lugar, a migration `0002` e a camada de dados | **Isto muda regra e dado** — está registrado na seção 9 e na D4, não aqui. A linha fica para marcar que `modelo.ts` e `reducer.ts` mudaram nas três cópias no mesmo passo, com igualdade provada por hash |
+
+### Dois achados de reprodutibilidade, abertos
+
+Nenhum dos dois é regra de produto. Os dois são a mesma doença do **X3**: o
+sistema funciona na máquina de hoje por causa de estado que o repositório não
+carrega. Quem clonar amanhã não recebe o que está funcionando aqui.
+
+| # | Achado | Onde |
+|---|---|---|
+| **X12** | **O banco não é reprodutível a partir das migrations.** Não existe nenhum `grant` em `caixa-vivo/supabase/migrations/`. Os privilégios que o banco local tem vieram de comando aplicado à mão. Verificado: a ausência dos grants. Não verificado de forma independente: se um ambiente limpo de fato quebra — exigiria outro `db reset` destrutivo | `caixa-vivo/supabase/migrations/` |
+| **X13** | **O Design OS não versiona o produto que desenha.** 137 arquivos fora do git: `product/`, `product-plan/`, `src/sections/`, `src/shell/`, `src/simulacao/`. Nada num `.gitignore` os exclui — nunca foram adicionados. É por isso que a auditoria não conseguiu datar a entrada da tela "Ao vivo": o arquivo nunca teve histórico | `imersao-teste-design/` |
 
 ---
 
@@ -822,6 +853,7 @@ tentativa de refutação. As entradas caem daqui quando forem fechadas.
 
 | Versão | Data | O que mudou |
 |---|---|---|
+| **v1.10** | 2026-08-12 | **O item 4 da D4 sai do papel: o lugar na mesa vira campo.** O número do lugar deixa de ser a posição num array ordenado por hora de confirmação — quem fechava a conta fazia todo mundo andar uma cadeira, e o lugar que o operador tocava era descartado. Agora `lugar` é campo próprio da Participação (seção 9), a ação de sentar aceita a cadeira escolhida, e o banco garante um jogador por lugar entre as contas **abertas**, com a conta encerrada guardando o número que teve (N13). ⚠️ **Meio caminho, de propósito:** a camada visual não entrou, então o estado *reservado* ainda não existe em tela e o critério **A26 continua como está** — ele só muda quando a cadeira reservada for desenhada. Registrados também dois achados de reprodutibilidade, **X12** (banco sem grants versionados) e **X13** (o Design OS não versiona o produto que desenha). ⚠️ **Pendente de aprovação** |
 | **v1.9** | 2026-08-12 | ✅ **D5 ratificada** pelo dono do processo: a autenticação de verdade entra como **F14**, com o critério **A27** e o estado de tela **Entrada**, e é **não cortável** — voltar atrás devolveria a credencial para dentro do código que o navegador baixa. Ela sai de "fora do escopo" na seção 13, onde ficam agora só os itens que ela **não** trouxe: níveis de permissão, troca de usuário e recuperação de senha pela tela. Dois riscos novos, que são a consequência honesta da decisão: **R11**, a sessão cair no meio da noite sem modo offline, e **R12**, a conta do operador não existir quando a noite vai começar. A credencial de demonstração saiu do protótipo e do pacote, e os três `Login.tsx` voltaram a ser byte a byte idênticos. Fecha o desacordo **X2**. ⚠️ **Pendente de aprovação** |
 | **v1.8** | 2026-08-12 | **Auditoria cruzada entre PRD, protótipo e app implementado, e a rotina que impede isso de acontecer de novo.** ✅ **D4 ratificada** pelo dono do processo: a mesa ao vivo entra como **F13**, com o critério **A26** e o estado de tela próprio, e passa a ser a primeira a cair na ordem de corte — a D4 lista os quatro itens que a ratificação ainda obriga, porque a tela nasceu no código e nunca voltou para as specs. 🔴 Nasce a **D5**: a autenticação de verdade foi construída contra a seção 13 e espera decisão. Criada a seção **Registro de mudanças do sistema**, com os dez desacordos abertos (X1 a X10) e as mudanças que não mexeram no produto. O PRD entra em **git** pela primeira vez, e um **Stop hook** passa a impedir que código de produto fique mais novo que este documento. ⚠️ **Pendente de aprovação** |
 | **v1.7** | 2026-08-12 | **Auditoria contra o protótipo — 6 desvios fechados.** A conta do checkpoint foi escrita (seção 7), com a pendência de confirmação marcada em vermelho; os dois motivos de exceção ganharam campos separados na seção 9; **N19** e **A24** definem a divergência da noite como a soma dos checkpoints; **F12** e **A25** registram o painel da noite, que existia sem documento; a autenticação entra explicitamente em fora de escopo, com a porta de demonstração descrita; **D4** registra que a mesa visual foi construída contra o que estava escrito, e devolve a decisão ao dono do processo. Ordem de corte atualizada. ⚠️ **Pendente de aprovação** |
