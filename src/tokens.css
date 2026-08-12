@@ -1,0 +1,69 @@
+/* Tokens do Caixa Vivo — copie para o seu CSS de entrada.
+ *
+ * O tema do produto vive no atributo `data-cv-tema`, e NÃO numa classe global.
+ * Isso evita brigar com o tema da aplicação hospedeira. Escuro é o padrão: é
+ * um app de madrugada, e ele nasce escuro mesmo quando ninguém declara nada.
+ */
+
+:root,
+[data-cv-tema='escuro'] {
+  --cv-room: var(--color-zinc-950);
+  --cv-lamp: color-mix(in srgb, var(--color-amber-300) 11%, transparent);
+  --cv-felt: color-mix(in srgb, var(--color-emerald-500) 8%, transparent);
+  --cv-panel: color-mix(in srgb, var(--color-zinc-900) 80%, transparent);
+  --cv-panel-quiet: color-mix(in srgb, var(--color-zinc-800) 35%, transparent);
+  --cv-hairline: color-mix(in srgb, white 12%, transparent);
+  --cv-hairline-soft: color-mix(in srgb, white 6%, transparent);
+  --cv-highlight: color-mix(in srgb, white 9%, transparent);
+  --cv-shadow: color-mix(in srgb, black 50%, transparent);
+  --cv-shadow-deep: color-mix(in srgb, black 70%, transparent);
+  --cv-ink: var(--color-stone-100);
+  --cv-ink-soft: var(--color-zinc-400);
+  --cv-engrave: color-mix(in srgb, black 55%, transparent);
+  --cv-tick: color-mix(in srgb, white 26%, transparent);
+  --cv-live: var(--color-cyan-300);
+  --cv-live-soft: color-mix(in srgb, var(--color-cyan-400) 16%, transparent);
+  --cv-accent: var(--color-zinc-400);
+  --cv-accent-soft: color-mix(in srgb, var(--color-zinc-400) 12%, transparent);
+  --cv-on-accent: var(--color-zinc-950);
+}
+
+[data-cv-tema='claro'] {
+  --cv-room: var(--color-stone-100);
+  --cv-lamp: color-mix(in srgb, var(--color-amber-200) 45%, transparent);
+  --cv-felt: color-mix(in srgb, var(--color-emerald-200) 40%, transparent);
+  --cv-panel: color-mix(in srgb, white 92%, var(--color-stone-200));
+  --cv-panel-quiet: color-mix(in srgb, white 50%, transparent);
+  --cv-hairline: color-mix(in srgb, var(--color-stone-900) 13%, transparent);
+  --cv-hairline-soft: color-mix(in srgb, var(--color-stone-900) 7%, transparent);
+  --cv-highlight: color-mix(in srgb, white 90%, transparent);
+  --cv-shadow: color-mix(in srgb, var(--color-stone-900) 12%, transparent);
+  --cv-shadow-deep: color-mix(in srgb, var(--color-stone-900) 18%, transparent);
+  --cv-ink: var(--color-stone-900);
+  --cv-ink-soft: var(--color-stone-500);
+  --cv-engrave: color-mix(in srgb, white 85%, transparent);
+  --cv-tick: color-mix(in srgb, var(--color-stone-900) 22%, transparent);
+  --cv-live: var(--color-cyan-700);
+  --cv-live-soft: color-mix(in srgb, var(--color-cyan-600) 12%, transparent);
+  --cv-accent: var(--color-stone-500);
+  --cv-accent-soft: color-mix(in srgb, var(--color-stone-500) 9%, transparent);
+  --cv-on-accent: white;
+}
+
+/* ── Os canais de estado ───────────────────────────────────────────────────
+ * Um por veredito, mais três de chrome. Quem aplica a classe não precisa saber
+ * a cor: pinta com as utilitárias de acento e a variável resolve.
+ */
+.cv-ch-neutro    { --cv-accent: var(--cv-ink-soft);        --cv-accent-soft: color-mix(in srgb, var(--cv-ink-soft) 9%, transparent); }
+.cv-ch-fecha     { --cv-accent: var(--color-emerald-400);  --cv-accent-soft: color-mix(in srgb, var(--color-emerald-400) 13%, transparent); }
+.cv-ch-revisar   { --cv-accent: var(--color-amber-400);    --cv-accent-soft: color-mix(in srgb, var(--color-amber-400) 14%, transparent); }
+.cv-ch-suspender { --cv-accent: var(--color-rose-400);     --cv-accent-soft: color-mix(in srgb, var(--color-rose-400) 14%, transparent); }
+.cv-ch-live      { --cv-accent: var(--cv-live);            --cv-accent-soft: var(--cv-live-soft); }
+.cv-ch-chrome    { --cv-accent: var(--color-violet-400);   --cv-accent-soft: color-mix(in srgb, var(--color-violet-400) 14%, transparent); }
+.cv-ch-limite    { --cv-accent: var(--color-amber-400);    --cv-accent-soft: color-mix(in srgb, var(--color-amber-400) 13%, transparent); }
+
+[data-cv-tema='claro'] .cv-ch-fecha     { --cv-accent: var(--color-emerald-600); }
+[data-cv-tema='claro'] .cv-ch-revisar   { --cv-accent: var(--color-amber-600); }
+[data-cv-tema='claro'] .cv-ch-suspender { --cv-accent: var(--color-rose-600); }
+[data-cv-tema='claro'] .cv-ch-chrome    { --cv-accent: var(--color-violet-600); }
+[data-cv-tema='claro'] .cv-ch-limite    { --cv-accent: var(--color-amber-600); }
