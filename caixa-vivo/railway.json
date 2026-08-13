@@ -5,8 +5,9 @@
     "buildCommand": "npm run build"
   },
   "deploy": {
-    "startCommand": "npm run preview -- --host 0.0.0.0 --port $PORT --strictPort",
-    "healthcheckPath": "/",
+    "startCommand": "npm run migrar-e-subir",
+    "healthcheckPath": "/saude",
+    "healthcheckTimeout": 60,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }

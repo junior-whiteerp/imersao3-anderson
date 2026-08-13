@@ -1,164 +1,146 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { clienteDeTeste, limparBanco, CLUBE_TESTE, DEALER_JOAO } from './banco'
+import { limparBanco, sql, uma, CLUBE_TESTE, DEALER_JOAO } from './banco'
 
-const db = clienteDeTeste()
+/**
+ * Os invariantes que o banco garante sozinho.
+ *
+ * O código de erro do Postgres vem no campo `code` da exceção: `23505` é
+ * unicidade violada e `23514` é `check` violado. Conferir o código, e não o
+ * texto, mantém o teste válido em qualquer idioma do servidor.
+ */
+async function codigoDoErro(fn: () => Promise<unknown>): Promise<string | null> {
+  try {
+    await fn()
+    return null
+  } catch (e) {
+    return (e as { code?: string }).code ?? 'sem-codigo'
+  }
+}
+
+const abrirSessao = () =>
+  uma<{ id: string }>(
+    `insert into sessao (clube_id, aberta_em, caixa_inicial) values ($1, now(), 20000)
+     returning id`,
+    [CLUBE_TESTE]
+  )
+
+const criarJogador = (nome: string, whatsapp: string) =>
+  uma<{ id: string }>(
+    `insert into jogador (clube_id, nome, whatsapp, limite, consentimento_em)
+     values ($1, $2, $3, 3000, now()) returning id`,
+    [CLUBE_TESTE, nome, whatsapp]
+  )
 
 describe('invariantes do banco', () => {
   beforeEach(limparBanco)
 
   it('N1 — recusa uma segunda sessão aberta no mesmo clube', async () => {
-    const primeira = await db
-      .from('sessao')
-      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 20000 })
-    expect(primeira.error).toBeNull()
-
-    const segunda = await db
-      .from('sessao')
-      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 5000 })
-    expect(segunda.error?.code).toBe('23505')
+    await abrirSessao()
+    expect(await codigoDoErro(abrirSessao)).toBe('23505')
   })
 
   it('N4 — recusa dois turnos abertos na mesma sessão', async () => {
-    const { data: s } = await db
-      .from('sessao')
-      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 20000 })
-      .select()
-      .single()
-
-    await db.from('turno').insert({ sessao_id: s!.id, dealer_id: DEALER_JOAO, numero: 1, inicio: 1140 })
-    const segundo = await db
-      .from('turno')
-      .insert({ sessao_id: s!.id, dealer_id: DEALER_JOAO, numero: 2, inicio: 1200 })
-    expect(segundo.error?.code).toBe('23505')
+    const s = await abrirSessao()
+    await sql(
+      `insert into turno (sessao_id, dealer_id, numero, inicio) values ($1, $2, 1, 1140)`,
+      [s.id, DEALER_JOAO]
+    )
+    const codigo = await codigoDoErro(() =>
+      sql(`insert into turno (sessao_id, dealer_id, numero, inicio) values ($1, $2, 2, 1200)`, [
+        s.id,
+        DEALER_JOAO,
+      ])
+    )
+    expect(codigo).toBe('23505')
   })
 
   it('N15 — recusa jogador sem dígito no WhatsApp', async () => {
-    const r = await db.from('jogador').insert({
-      clube_id: CLUBE_TESTE,
-      nome: 'Sem Zap',
-      whatsapp: 'não informou',
-      limite: 3000,
-      consentimento_em: new Date().toISOString(),
-    })
-    expect(r.error?.code).toBe('23514')
+    expect(await codigoDoErro(() => criarJogador('Sem Zap', 'não informou'))).toBe('23514')
   })
 
   it('N16 — recusa contingência sem motivo escrito', async () => {
-    const { data: s } = await db
-      .from('sessao')
-      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 20000 })
-      .select()
-      .single()
-    const { data: t } = await db
-      .from('turno')
-      .insert({ sessao_id: s!.id, dealer_id: DEALER_JOAO, numero: 1, inicio: 1140 })
-      .select()
-      .single()
+    const s = await abrirSessao()
+    const t = await uma<{ id: string }>(
+      `insert into turno (sessao_id, dealer_id, numero, inicio) values ($1, $2, 1, 1140)
+       returning id`,
+      [s.id, DEALER_JOAO]
+    )
 
-    const r = await db.from('movimentacao').insert({
-      sessao_id: s!.id,
-      turno_id: t!.id,
-      tipo: 'rake',
-      valor: 180,
-      hora_ocorrencia: 1175,
-      hora_digitacao: 1177,
-      situacao: 'confirmada',
-      confirmacao: 'contingencia',
-      motivo_contingencia: '   ',
-    })
-    expect(r.error?.code).toBe('23514')
+    const codigo = await codigoDoErro(() =>
+      sql(
+        `insert into movimentacao
+           (sessao_id, turno_id, tipo, valor, hora_ocorrencia, hora_digitacao,
+            situacao, confirmacao, motivo_contingencia)
+         values ($1, $2, 'rake', 180, 1175, 1177, 'confirmada', 'contingencia', '   ')`,
+        [s.id, t.id]
+      )
+    )
+    expect(codigo).toBe('23514')
   })
 
   it('nenhuma janela de checkpoint nasce invertida', async () => {
-    const { data: s } = await db
-      .from('sessao')
-      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 20000 })
-      .select()
-      .single()
-    const { data: t } = await db
-      .from('turno')
-      .insert({ sessao_id: s!.id, dealer_id: DEALER_JOAO, numero: 1, inicio: 1140 })
-      .select()
-      .single()
+    const s = await abrirSessao()
+    const t = await uma<{ id: string }>(
+      `insert into turno (sessao_id, dealer_id, numero, inicio) values ($1, $2, 1, 1140)
+       returning id`,
+      [s.id, DEALER_JOAO]
+    )
 
-    const r = await db.from('checkpoint').insert({
-      sessao_id: s!.id,
-      numero: 1,
-      hora: 1175,
-      contado_em: 1175,
-      caixa_esperado: 20000,
-      caixa_contado: 20000,
-      diferenca: 0,
-      veredito: 'fechado',
-      janela_inicio: 1200,
-      janela_fim: 1140,
-      turno_id: t!.id,
-      rake_acumulado: 180,
-    })
-    expect(r.error?.code).toBe('23514')
+    const codigo = await codigoDoErro(() =>
+      sql(
+        `insert into checkpoint
+           (sessao_id, numero, hora, contado_em, caixa_esperado, caixa_contado, diferenca,
+            veredito, janela_inicio, janela_fim, turno_id, rake_acumulado)
+         values ($1, 1, 1175, 1175, 20000, 20000, 0, 'fechado', 1200, 1140, $2, 180)`,
+        [s.id, t.id]
+      )
+    )
+    expect(codigo).toBe('23514')
   })
 
   it('recusa duas participacoes abertas no mesmo lugar, e aceita depois de encerrar', async () => {
-    const { data: s } = await db
-      .from('sessao')
-      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 20000 })
-      .select()
-      .single()
+    const s = await abrirSessao()
+    const j1 = await criarJogador('Um', '11999990001')
+    const j2 = await criarJogador('Dois', '11999990002')
 
-    const { data: j1 } = await db
-      .from('jogador')
-      .insert({
-        clube_id: CLUBE_TESTE, nome: 'Um', whatsapp: '11999990001',
-        limite: 3000, consentimento_em: new Date().toISOString(),
-      })
-      .select().single()
-    const { data: j2 } = await db
-      .from('jogador')
-      .insert({
-        clube_id: CLUBE_TESTE, nome: 'Dois', whatsapp: '11999990002',
-        limite: 3000, consentimento_em: new Date().toISOString(),
-      })
-      .select().single()
+    const sentar = (jogadorId: string, entrouAs: number) =>
+      sql(
+        `insert into participacao (sessao_id, jogador_id, entrou_as, lugar)
+         values ($1, $2, $3, 7)`,
+        [s.id, jogadorId, entrouAs]
+      )
 
-    const primeira = await db.from('participacao').insert({
-      sessao_id: s!.id, jogador_id: j1!.id, entrou_as: 1140, lugar: 7,
-    })
-    expect(primeira.error).toBeNull()
-
-    const segunda = await db.from('participacao').insert({
-      sessao_id: s!.id, jogador_id: j2!.id, entrou_as: 1150, lugar: 7,
-    })
-    expect(segunda.error?.code).toBe('23505')
+    await sentar(j1.id, 1140)
+    expect(await codigoDoErro(() => sentar(j2.id, 1150))).toBe('23505')
 
     // Encerrar a conta devolve a cadeira ao pool — sem apagar o numero (N13).
-    await db
-      .from('participacao')
-      .update({ encerrada: true, saiu_as: 1200 })
-      .eq('sessao_id', s!.id)
-      .eq('jogador_id', j1!.id)
+    await sql(
+      `update participacao set encerrada = true, saiu_as = 1200
+       where sessao_id = $1 and jogador_id = $2`,
+      [s.id, j1.id]
+    )
 
-    const terceira = await db.from('participacao').insert({
-      sessao_id: s!.id, jogador_id: j2!.id, entrou_as: 1210, lugar: 7,
-    })
-    expect(terceira.error).toBeNull()
+    expect(await codigoDoErro(() => sentar(j2.id, 1210))).toBeNull()
+
+    // A cadeira liberada continua gravada na conta encerrada.
+    const encerrada = await uma<{ lugar: number }>(
+      'select lugar from participacao where jogador_id = $1',
+      [j1.id]
+    )
+    expect(encerrada.lugar).toBe(7)
   })
 
   it('recusa lugar fora da mesa', async () => {
-    const { data: s } = await db
-      .from('sessao')
-      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 20000 })
-      .select().single()
-    const { data: j } = await db
-      .from('jogador')
-      .insert({
-        clube_id: CLUBE_TESTE, nome: 'Onze', whatsapp: '11999990011',
-        limite: 3000, consentimento_em: new Date().toISOString(),
-      })
-      .select().single()
+    const s = await abrirSessao()
+    const j = await criarJogador('Onze', '11999990011')
 
-    const r = await db.from('participacao').insert({
-      sessao_id: s!.id, jogador_id: j!.id, entrou_as: 1140, lugar: 11,
-    })
-    expect(r.error?.code).toBe('23514')
+    const codigo = await codigoDoErro(() =>
+      sql(
+        `insert into participacao (sessao_id, jogador_id, entrou_as, lugar)
+         values ($1, $2, 1140, 11)`,
+        [s.id, j.id]
+      )
+    )
+    expect(codigo).toBe('23514')
   })
 })

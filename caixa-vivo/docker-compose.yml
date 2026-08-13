@@ -1,0 +1,29 @@
+# Postgres de desenvolvimento. Um serviço — no lugar dos cinco que o
+# `supabase start` subia (Postgres, GoTrue, PostgREST, Kong, Studio).
+#
+#   docker compose up -d      sobe
+#   npm run banco:migrar      aplica as migrations
+#   npm run banco:semear      insere clube e dealers
+#   npm run banco:operador    cria a conta do operador
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: caixa-vivo-db
+    environment:
+      POSTGRES_USER: caixa
+      POSTGRES_PASSWORD: caixa
+      POSTGRES_DB: caixa_vivo
+    ports:
+      # Faixa 3300-3999 do projeto. 5432 costuma estar ocupado por outro Postgres.
+      - '3432:5432'
+    volumes:
+      - caixa-vivo-dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U caixa -d caixa_vivo']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  caixa-vivo-dados:

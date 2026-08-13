@@ -15,7 +15,16 @@ function varrer(dir) {
   }
 }
 
-varrer('dist')
+// Os dois artefatos. O servidor também é código que vai para produção, e a
+// noite de demonstração vazaria por ele do mesmo jeito.
+for (const pasta of ['dist', 'dist-servidor']) {
+  try {
+    varrer(pasta)
+  } catch {
+    console.error(`Pasta ${pasta} não existe — rode \`npm run build\` antes.`)
+    process.exit(1)
+  }
+}
 
 if (achados.length) {
   console.error('A noite de demonstração vazou para o build:')

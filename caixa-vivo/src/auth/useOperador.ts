@@ -1,44 +1,50 @@
-import { useCallback, useEffect, useState } from 'react'
-import { cliente } from '@/dados/supabase'
+import { useEffect, useState } from 'react'
+import * as api from '@/dados/api'
 
 export interface Operador {
   id: string
   nome: string
 }
 
+/**
+ * A sessão do operador.
+ *
+ * O token não passa por aqui: ele vive num cookie `httpOnly`, que o JavaScript
+ * não alcança. O que este hook sabe é se existe sessão e de quem ela é — e
+ * descobre isso perguntando ao servidor, nunca lendo `localStorage`.
+ */
 export function useOperador() {
   const [operador, setOperador] = useState<Operador | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
-  const carregarPerfil = useCallback(async (id: string) => {
-    const { data, error } = await cliente.from('operador').select('id, nome').eq('id', id).single()
-    if (error) throw new Error(`Sessão válida, mas sem cadastro de operador: ${error.message}`)
-    setOperador(data as Operador)
-  }, [])
-
   useEffect(() => {
-    cliente.auth.getSession().then(async ({ data }) => {
-      if (data.session) await carregarPerfil(data.session.user.id).catch((e) => setErro(e.message))
-      setCarregando(false)
-    })
-    const { data: sub } = cliente.auth.onAuthStateChange((_e, s) => {
-      if (!s) setOperador(null)
-    })
-    return () => sub.subscription.unsubscribe()
-  }, [carregarPerfil])
+    let vivo = true
+    api
+      .sessaoAtual()
+      .then((o) => {
+        if (vivo) setOperador(o)
+      })
+      .catch((e: unknown) => {
+        if (vivo) setErro(e instanceof Error ? e.message : 'Falha ao conferir a sessão.')
+      })
+      .finally(() => {
+        if (vivo) setCarregando(false)
+      })
+    return () => {
+      vivo = false
+    }
+  }, [])
 
   async function entrar(email: string, senha: string) {
     setErro(null)
-    const { data, error } = await cliente.auth.signInWithPassword({ email, password: senha })
-    // O erro do Supabase sobe como está. Traduzi-lo aqui esconderia
-    // "e-mail não confirmado" atrás de "usuário ou senha não confere".
-    if (error) throw error
-    await carregarPerfil(data.user.id)
+    // O erro sobe como está: a tela de Login sabe mostrá-lo, e o servidor já
+    // devolve uma frase escrita para o operador.
+    setOperador(await api.entrar(email, senha))
   }
 
   async function sair() {
-    await cliente.auth.signOut()
+    await api.sair()
     setOperador(null)
   }
 

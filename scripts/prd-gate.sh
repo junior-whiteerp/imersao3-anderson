@@ -29,7 +29,8 @@ PRD="$RAIZ/docs/PRD.md"
 # regra — foi ele que passou a carimbar consentimento que ninguém deu.
 CAMINHOS=(
   "$RAIZ/caixa-vivo/src"
-  "$RAIZ/caixa-vivo/supabase/migrations"
+  "$RAIZ/caixa-vivo/banco/migrations"
+  "$RAIZ/caixa-vivo/servidor"
   "$RAIZ/imersao-teste-design/product"
   "$RAIZ/imersao-teste-design/product-plan"
   "$RAIZ/imersao-teste-design/src/sections"

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { agoraEmMinutos } from '@/dados/relogio'
+import { agoraEmMinutos } from '../servidor/dados/relogio'
 
 describe('agoraEmMinutos', () => {
   it('conta a partir da meia-noite do dia em que a sessão abriu', () => {

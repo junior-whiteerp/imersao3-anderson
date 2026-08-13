@@ -22,3 +22,6 @@ node_modules/
 # Para publicar, tire a linha correspondente.
 .apresentacao/
 docs/*apresentacao*.html
+
+# Estado da janela do Obsidian. Muda a cada vez que o vault abre.
+.obsidian/workspace.json

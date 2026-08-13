@@ -9,11 +9,7 @@ import {
 } from 'react'
 import type { Noite } from '@/regras/modelo'
 import type { Acao } from '@/regras/reducer'
-import { cliente } from '@/dados/supabase'
-import { carregarNoite } from '@/dados/carregarNoite'
-import { aplicar } from '@/dados/aplicar'
-
-const CLUBE = '11111111-1111-1111-1111-111111111111'
+import * as api from '@/dados/api'
 
 type Estado = 'carregando' | 'pronto' | 'erro'
 
@@ -45,14 +41,21 @@ const NOITE_VAZIA = {
   seq: 1,
 } as unknown as Noite
 
+/**
+ * O clube e o operador saíram daqui.
+ *
+ * Antes o clube era uma constante fixa no código do cliente e o id do operador
+ * vinha por prop. Agora os dois saem do cookie de sessão, no servidor — o
+ * navegador não escolhe em nome de quem escreve.
+ */
 export function NoiteProvider({
   children,
-  operadorId = null,
-  carregar = () => carregarNoite(cliente, CLUBE),
+  carregar = () => api.lerNoite(),
+  despacharAcao = (acao: Acao) => api.despacharAcao(acao),
 }: {
   children: ReactNode
-  operadorId?: string | null
   carregar?: () => Promise<Noite>
+  despacharAcao?: (acao: Acao) => Promise<Noite>
 }) {
   const [noite, setNoite] = useState<Noite>(NOITE_VAZIA)
   const [estado, setEstado] = useState<Estado>('carregando')
@@ -68,6 +71,8 @@ export function NoiteProvider({
    */
   const carregarRef = useRef(carregar)
   carregarRef.current = carregar
+  const despacharRef = useRef(despacharAcao)
+  despacharRef.current = despacharAcao
 
   const recarregar = useCallback(async () => {
     setEstado('carregando')
@@ -88,7 +93,7 @@ export function NoiteProvider({
 
   async function despachar(acao: Acao) {
     try {
-      setNoite(await aplicar(cliente, CLUBE, operadorId, acao))
+      setNoite(await despacharRef.current(acao))
       setErro(null)
       setEstado('pronto')
     } catch (e) {

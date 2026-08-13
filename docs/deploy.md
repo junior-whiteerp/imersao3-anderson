@@ -1,183 +1,131 @@
-# Subir o StackTrack — GitHub, Supabase e Cloudflare Pages
+# Subir o StackTrack
 
-> Estado em 2026-08-13. O repositório está publicado e o código está pronto
-> para servir. O que falta depende de login em painel, e por isso é seu.
-> A Railway foi tentada e abandonada — o porquê está no passo 2.
+> Estado em 2026-08-13. Depois da **DEC-007**, o Caixa Vivo tem backend próprio:
+> React + TypeScript + Postgres, sem fornecedor no caminho.
 
 ---
 
-## O que já está pronto
+## O que existe agora
 
 | | |
 |---|---|
-| **GitHub** | `git@github.com:junior-whiteerp/imersao3-anderson.git`, branch `main`. Um repositório só, com os três históricos dentro |
-| **Build dos dois apps** | `npm run build` passa limpo nos dois |
-| **Servir em produção** | `_redirects` em cada app, para a rota interna não dar 404 no CDN. Conferido: o Vite copia os dois para o `dist/` |
-| **Sobra da Railway** | `railway.json` continua nos dois apps, com `vite preview` na porta injetada. Inofensivo — o Cloudflare Pages ignora. Fica para o dia em que existir backend |
+| **Repositório** | `junior-whiteerp/imersao3-anderson`, branch `main` |
+| **Caixa Vivo** | Um processo Node serve a API **e** a tela. Precisa de Postgres |
+| **Design OS** | Bundle estático puro. Não precisa de nada |
+| **Testes** | 108, todos contra um Postgres de verdade |
 
-### Como o repositório ficou montado
+O Caixa Vivo deixou de ser publicável em CDN: **agora existe servidor**. O
+Design OS continua estático.
 
-Os três repositórios viraram um, por **merge de subárvore**. Todo commit, autor
-e data está lá — 63 commits alcançáveis.
+---
 
-O custo, que é real: os commits antigos gravaram caminhos **sem** o prefixo
-(`src/regras/modelo.ts`, não `caixa-vivo/src/regras/modelo.ts`). Então:
+## Rodar na sua máquina
 
 ```bash
-git log -- caixa-vivo/src/regras/modelo.ts   # para no merge, não mostra o passado
-git log pre-merge/caixa-vivo                 # mostra o histórico inteiro, caminhos originais
-git log pre-merge/design-os                  # idem, do Design OS
+cd caixa-vivo
+npm install
+npm run banco:subir                    # Postgres em Docker, porta 3432
+npm run banco:migrar                   # aplica o esquema
+npm run banco:semear                   # clube e dealers
+npm run banco:operador -- --email anderson@clubeparis.com --nome "Anderson"
+npm run dev                            # API na 3402, tela na 3400
 ```
 
-As duas tags estão publicadas. Para ter o histórico com caminho prefixado seria
-preciso reescrever os SHAs com `git-filter-repo` — dá para fazer depois, num
-clone, sem perder nada.
+A senha é pedida sem eco. Ela **nunca** vai por argumento: `ps` mostra a linha
+de comando inteira para qualquer usuário da máquina, e o shell guarda no
+histórico. Para automação, use `SENHA_OPERADOR` no ambiente.
 
-### ⚠️ Os dois `.git` antigos ainda existem
-
-`caixa-vivo/.git` e `imersao-teste-design/.git` continuam no disco. **Commit
-feito lá dentro não aparece no monorepo** — e é a armadilha mais fácil de cair
-daqui pra frente. Escolha uma:
-
-- **Apagar os dois** (o histórico já está no monorepo, e as tags marcam a origem)
-- **Manter** e lembrar de commitar sempre a partir de `/Users/juniorcesar/imersao3`
-
-Há cópia de segurança dos três `.git` em `tres-gits.tgz`, no scratchpad da
-sessão — some quando a sessão for limpa, então mova antes se quiser guardar.
+Abra `http://localhost:3400`.
 
 ---
 
-## Passo 1 — Supabase Cloud  🔴 depende de você
+## Publicar o Caixa Vivo
 
-O Caixa Vivo é SPA pura: não tem servidor próprio. Ele fala direto com o
-Supabase, usando **Auth e RLS**. Postgres sozinho não serve — precisa do
-GoTrue e do PostgREST, que é o que o Supabase entrega.
+Precisa de duas coisas: um **Postgres** e um lugar que rode **Node**.
+
+### Na Railway (servidor e banco no mesmo lugar)
 
 ```bash
-# 1. Login (abre o navegador — só você consegue fazer)
-npx supabase login
-
-# 2. Crie o projeto em https://supabase.com/dashboard  (região: São Paulo)
-#    Guarde a senha do banco.
-
-# 3. Ligue este repositório ao projeto e suba as migrations
-cd /Users/juniorcesar/imersao3/caixa-vivo
-npx supabase link --project-ref <REF_DO_PROJETO>
-npx supabase db push
+cd /Users/juniorcesar/imersao3
+railway link                     # escolha o projeto imersao3-anderson
+railway add -d postgres          # o banco
+railway add -s caixa-vivo        # o app
 ```
 
-`db push` aplica `0001_esquema.sql` e `0002_lugar_na_mesa.sql`. **Não** aplica o
-`seed.sql` — de propósito: o seed cria um operador com senha escrita em arquivo,
-e isso não vai para produção.
+No serviço `caixa-vivo`, em **Variables**:
 
-### Depois do push, três inserções à mão
-
-O `seed.sql` não viaja, então o clube, o dealer e o operador não existem no ar.
-Sem eles ninguém entra: é o risco **R12** do PRD.
-
-1. **Painel → Authentication → Users → Add user.** E-mail e senha reais do
-   Anderson. Confirme o e-mail na hora de criar. Copie o **UUID** do usuário.
-2. **Painel → SQL Editor**, trocando `<UUID>` pelo que você copiou:
-
-```sql
-insert into clube (id, nome, percentual_rake_dealer) values
-  ('11111111-1111-1111-1111-111111111111', 'Clube Paris', 0);
-
-insert into dealer (id, clube_id, nome) values
-  ('22222222-2222-2222-2222-222222222221', '11111111-1111-1111-1111-111111111111', 'João Ribeiro'),
-  ('22222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', 'Marcos Lima'),
-  ('22222222-2222-2222-2222-222222222223', '11111111-1111-1111-1111-111111111111', 'Cris Andrade');
-
-insert into operador (id, clube_id, nome) values
-  ('<UUID>', '11111111-1111-1111-1111-111111111111', 'Anderson');
-```
-
-3. **Painel → Project Settings → API.** Anote `Project URL` e a chave `anon`.
-
-> ⚠️ **Este passo é o teste do X12.** Não existe nenhum `grant` nas migrations —
-> os privilégios do banco local vieram de comando aplicado à mão. Se depois do
-> `db push` o app abrir e as telas vierem vazias sem erro de login, é isso: o
-> `anon`/`authenticated` não enxerga as tabelas. A correção é uma migration
-> `0003` com os grants, e aí o X12 fecha de vez.
-
----
-
-## Passo 2 — Cloudflare Pages  🟡 cinco cliques seus, por app
-
-### Por que aqui e não na Railway
-
-Os dois apps são **estáticos**: bundle que o navegador baixa, sem servidor
-próprio. O Caixa Vivo fala direto com o Supabase a partir do navegador. A
-Railway mantém um processo Node de pé 24 horas para entregar arquivo parado —
-custa dinheiro e não entrega nada a mais. CDN é a forma certa, e é de graça.
-
-A Railway volta a fazer sentido no dia em que o Caixa Vivo ganhar backend
-próprio. Hoje ele não tem.
-
-> As duas contas Railway travaram em cobrança de qualquer forma: a
-> `junior-whiteerp` com *"Your trial has expired"*, e a
-> `andersonszczepanski90@gmail.com` com *"Your workspace has been restricted.
-> Please attach a payment method"*. Ficou criado, vazio, o projeto
-> `imersao3-anderson` (`e9095e96-57e2-4100-8f88-b026d83eb012`) com um serviço
-> `design-os`. Pode apagar.
-
-### O que fazer, em cada um dos dois apps
-
-Painel da Cloudflare → **Workers & Pages → Create → Pages → Connect to Git** →
-repositório `junior-whiteerp/imersao3-anderson`. Depois:
-
-| Campo | Caixa Vivo | Design OS |
-|---|---|---|
-| Project name | `caixa-vivo` | `design-os` |
-| Root directory | `caixa-vivo` | `imersao-teste-design` |
-| Framework preset | Vite | Vite |
-| Build command | `npm run build` | `npm run build` |
-| Build output directory | `dist` | `dist` |
-
-**O Root directory é o campo que decide se funciona.** Sem ele a build roda na
-raiz do repositório, que não tem `package.json`.
-
-### As variáveis do Caixa Vivo
-
-Só ele precisa. Em **Settings → Variables and Secrets**, para *Production* e
-*Preview*:
-
-```
-VITE_SUPABASE_URL       = <Project URL do passo 1>
-VITE_SUPABASE_ANON_KEY  = <chave anon do passo 1>
-```
-
-São variáveis de **build**, não de execução: o Vite grava o valor dentro do
-bundle. Trocar a chave exige **rebuild**, não restart — na Cloudflare,
-*Deployments → Retry deployment*.
-
-Se faltar qualquer uma das duas, o app quebra no boot com mensagem clara —
-está escrito assim de propósito em `src/dados/supabase.ts`. O Caixa Vivo não
-tem modo de demonstração, e não pode ter: um app que cai para dados de exemplo
-quando o banco some fica com cara de funcionando enquanto o caixa da noite não
-está sendo registrado em lugar nenhum.
-
-O Design OS não precisa de variável nenhuma — é protótipo, roda com dado de
-amostra.
-
-### O que já está resolvido no código
-
-`caixa-vivo/public/_redirects` e `imersao-teste-design/public/_redirects`
-carregam `/*  /index.html  200`. Sem isso, recarregar a página em `/mesa` ou
-abrir direto uma rota de screen design daria **404**: o servidor procuraria um
-arquivo que não existe, porque quem resolve a rota é o react-router, dentro do
-navegador. O Vite copia os dois para o `dist/` na build — conferido.
-
-Depois de conectado, cada push na `main` dispara build e deploy sozinho.
-
----
-
-## Se a build falhar
-
-| Sintoma | Causa provável |
+| Variável | Valor |
 |---|---|
-| Build falha dizendo que não achou `package.json` | **Root directory** vazio. É o erro número um |
-| App abre e quebra com "Falta credencial do banco" | `VITE_SUPABASE_URL` ou `VITE_SUPABASE_ANON_KEY` ausente **na build**. Preencher e refazer o deploy — variável nova não entra em bundle antigo |
-| A home abre, mas recarregar numa rota interna dá 404 | O `_redirects` não chegou no `dist/`. Confira se a build pegou o commit certo |
-| Login passa, telas vazias, sem erro | **X12**: faltam os grants no banco. Ver o aviso do passo 1 |
-| Login recusa com "Database error querying schema" | Campos de token do GoTrue com `NULL` em vez de string vazia. Só acontece se o usuário for criado por SQL à mão em vez do painel |
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` — referência ao serviço de banco |
+| `NODE_ENV` | `production` — é o que liga o `Secure` no cookie de sessão |
+
+Em **Settings → Source → Connect Repo**, aponte para
+`junior-whiteerp/imersao3-anderson` com **Root Directory** = `caixa-vivo`.
+Sem o Root Directory a build falha: a raiz do repositório não tem `package.json`.
+
+O `railway.json` do `caixa-vivo/` já manda:
+
+```
+build:  npm run build       (tela + servidor)
+start:  npm run migrar-e-subir
+```
+
+`migrar-e-subir` aplica as migrations pendentes e então sobe o servidor. É
+seguro repetir: cada migration roda uma vez só, anotada na tabela `migracao`.
+
+Depois do primeiro deploy, crie o clube e a conta do operador:
+
+```bash
+railway run --service caixa-vivo npm run banco:semear
+railway run --service caixa-vivo npm run banco:operador -- \
+  --email anderson@clubeparis.com --nome "Anderson"
+```
+
+Por fim, **Settings → Networking → Generate Domain**.
+
+### Em qualquer outro lugar
+
+O app é um processo Node comum. Precisa de:
+
+- `DATABASE_URL` apontando para um Postgres 15+
+- `PORT` (o provedor injeta)
+- `NODE_ENV=production`
+- `npm run build` no build, `npm run migrar-e-subir` no start
+
+Serve para Render, Fly, uma VPS com systemd, ou Docker. O Postgres pode ser
+Neon, Railway, RDS ou um container seu — as migrations são SQL padrão e não
+dependem de extensão além de `pgcrypto`.
+
+---
+
+## Publicar o Design OS
+
+Continua estático, e continua de graça: **Cloudflare Pages → Connect to Git**,
+Root Directory `imersao-teste-design`, build `npm run build`, saída `dist`.
+O `public/_redirects` já está lá.
+
+---
+
+## Segurança — o que o desenho garante
+
+| | |
+|---|---|
+| **A regra é do servidor** | O navegador manda a ação e recebe o estado. Ele nunca escreve no banco, então N6, teto de contingência e exigência de aceite não são mais escolha do cliente |
+| **Lista branca de ações** | `reiniciar`, `injetar-furo` e `avancar-tempo` são ferramentas da simulação e a API as recusa com 400 |
+| **RLS ligado** | Cada requisição roda em transação com `set local role caixa_app` e `set local app.operador_id`. Um operador não enxerga o clube de outro — quem recusa é o Postgres |
+| **Sem DELETE** | `caixa_app` não tem o privilégio. A **N13** deixou de ser promessa do código |
+| **Senha** | `scrypt` do `node:crypto`, sal novo a cada hash, comparação em tempo constante |
+| **Sessão** | Cookie `httpOnly` + `Secure` + `SameSite=Lax`, 12 h. Não é JWT no `localStorage`, que qualquer XSS lê |
+
+---
+
+## Se falhar
+
+| Sintoma | Causa |
+|---|---|
+| Build não acha `package.json` | **Root Directory** vazio no serviço |
+| `Falta DATABASE_URL` no start | Variável não configurada, ou referência ao Postgres escrita errada |
+| `permission denied for table X` | `set local role caixa_app` sem `grant caixa_app to <usuário>`. A migration `0001` faz isso sozinha para quem a roda — se o usuário do app for outro, conceda à mão |
+| Login responde 401 com a senha certa | O hash foi gerado por outro `banco:operador`, contra outro banco. Rode de novo apontando para o banco certo |
+| Tela abre, API dá 404 | O servidor não achou o `dist/`. `npm run build` roda a tela **e** o servidor — conferir se os dois passaram |
+| Cookie não persiste em produção | `NODE_ENV` diferente de `production` deixa o cookie sem `Secure`, e o navegador recusa em https |

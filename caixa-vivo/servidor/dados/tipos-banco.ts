@@ -1,7 +1,8 @@
 /**
  * As linhas do Postgres, exatamente como elas voltam.
  *
- * Snake_case e nulos de verdade — este arquivo é a fronteira. Depois dele,
+ * Snake_case, nulos de verdade e `Date` onde o Postgres devolve timestamptz —
+ * este arquivo é a fronteira. Depois dele,
  * tudo é `Noite` em camelCase, e nenhuma tela precisa saber que existe um
  * `hora_ocorrencia` em algum lugar.
  */
@@ -26,14 +27,14 @@ export interface LinhaJogador {
   whatsapp: string
   cpf: string | null
   limite: number
-  consentimento_em: string
+  consentimento_em: Date
 }
 
 export interface LinhaSessao {
   id: string
   clube_id: string
-  aberta_em: string
-  encerrada_em: string | null
+  aberta_em: Date
+  encerrada_em: Date | null
   caixa_inicial: number
   aberta: boolean
 }
@@ -73,7 +74,7 @@ export interface LinhaMovimentacao {
   motivo_limite: string | null
   motivo_contingencia: string | null
   lancado_por: string | null
-  criada_em: string
+  criada_em: Date
 }
 
 export interface LinhaCheckpoint {

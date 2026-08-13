@@ -7,7 +7,7 @@ import { MarcaStackTrack } from './MarcaStackTrack'
  * A porta do caixa.
  *
  * Esta tela não decide mais quem entra: ela pergunta, e quem responde é o
- * Supabase, do outro lado da rede. O que ela faz é o que sempre fez bem —
+ * servidor, do outro lado da rede. O que ela faz é o que sempre fez bem —
  * pedir os dois campos, mostrar o que deu errado e não deixar o operador
  * clicar duas vezes enquanto a resposta não chega.
  *

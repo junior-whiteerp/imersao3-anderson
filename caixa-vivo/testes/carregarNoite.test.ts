@@ -1,14 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { clienteDeTeste, limparBanco, CLUBE_TESTE, DEALER_JOAO } from './banco'
-import { carregarNoite } from '@/dados/carregarNoite'
-
-const db = clienteDeTeste()
+import { comConexao, limparBanco, uma, CLUBE_TESTE, DEALER_JOAO } from './banco'
+import { carregarNoite } from '../servidor/dados/carregarNoite'
 
 describe('carregarNoite', () => {
   beforeEach(limparBanco)
 
   it('devolve uma noite vazia quando não há sessão aberta', async () => {
-    const noite = await carregarNoite(db, CLUBE_TESTE)
+    const noite = await comConexao((c) => carregarNoite(c, CLUBE_TESTE))
     expect(noite.sessao).toBeNull()
     expect(noite.movimentacoes).toEqual([])
     expect(noite.dealers.length).toBeGreaterThan(0) // dealers existem entre sessões
@@ -16,28 +14,25 @@ describe('carregarNoite', () => {
 
   it('monta a noite com sessão, turno e movimentação, em minutos', async () => {
     const abriu = new Date('2026-08-12T19:00:00-03:00')
-    const { data: s } = await db
-      .from('sessao')
-      .insert({ clube_id: CLUBE_TESTE, aberta_em: abriu.toISOString(), caixa_inicial: 20000 })
-      .select()
-      .single()
-    const { data: t } = await db
-      .from('turno')
-      .insert({ sessao_id: s!.id, dealer_id: DEALER_JOAO, numero: 1, inicio: 1140 })
-      .select()
-      .single()
-    await db.from('movimentacao').insert({
-      sessao_id: s!.id,
-      turno_id: t!.id,
-      tipo: 'rake',
-      valor: 180,
-      hora_ocorrencia: 1175,
-      hora_digitacao: 1177,
-      situacao: 'confirmada',
-      confirmacao: 'presencial',
-    })
+    const s = await uma<{ id: string }>(
+      `insert into sessao (clube_id, aberta_em, caixa_inicial) values ($1, $2, $3) returning id`,
+      [CLUBE_TESTE, abriu.toISOString(), 20000]
+    )
+    const t = await uma<{ id: string }>(
+      `insert into turno (sessao_id, dealer_id, numero, inicio) values ($1, $2, 1, 1140)
+       returning id`,
+      [s.id, DEALER_JOAO]
+    )
+    await uma(
+      `insert into movimentacao
+         (sessao_id, turno_id, tipo, valor, hora_ocorrencia, hora_digitacao, situacao, confirmacao)
+       values ($1, $2, 'rake', 180, 1175, 1177, 'confirmada', 'presencial') returning id`,
+      [s.id, t.id]
+    )
 
-    const noite = await carregarNoite(db, CLUBE_TESTE, new Date('2026-08-12T21:47:00-03:00'))
+    const noite = await comConexao((c) =>
+      carregarNoite(c, CLUBE_TESTE, new Date('2026-08-12T21:47:00-03:00'))
+    )
 
     expect(noite.sessao?.caixaInicial).toBe(20000)
     expect(noite.sessao?.abertaEm).toBe(1140)

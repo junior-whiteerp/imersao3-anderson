@@ -36,7 +36,7 @@ function Conteudo({ operador, sair }: { operador: { nome: string }; sair: () => 
       ) : estado === 'erro' ? (
         <div className="cv-panel cv-ch-suspender mx-auto mt-8 max-w-md rounded-2xl p-6 text-center">
           <p className="cv-accent-text font-cv-display text-[24px]">
-            Não deu para falar com o banco
+            Não deu para falar com o servidor
           </p>
           <p className="cv-text-soft mt-2 text-[13px]">{erro}</p>
           <p className="cv-text-soft mt-2 text-[12px]">
@@ -77,7 +77,7 @@ export default function App() {
   if (carregando) return <p className="p-8 text-center">Carregando…</p>
   if (!operador) return <Login onEntrar={entrar} />
   return (
-    <NoiteProvider operadorId={operador.id}>
+    <NoiteProvider>
       <Conteudo operador={operador} sair={sair} />
     </NoiteProvider>
   )

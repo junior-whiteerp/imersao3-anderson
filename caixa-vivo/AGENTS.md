@@ -29,7 +29,7 @@ tomadas em `20-Decisoes/DEC-NNN`.
 ## Portão obrigatório
 
 Um Stop hook (`../scripts/prd-gate.sh`) impede encerrar o turno se algo em
-`src/` ou `supabase/migrations/` for mais novo que o PRD. As três saídas
+`src/`, `servidor/` ou `banco/migrations/` for mais novo que o PRD. As três saídas
 (atualizar regra, abrir decisão, ou registrar que não mudou produto) estão em
 `../AGENTS.md`. **Não contorne o portão** — foi a falta dele que deixou a mesa
 visual entrar no produto sem decisão.
@@ -47,11 +47,15 @@ só o que nasceu ou mudou.
 
 | Pasta | Papel |
 |---|---|
-| `src/regras/` | `modelo.ts` e `reducer.ts` — **a única fonte de verdade das regras** |
+| `src/regras/` | `modelo.ts` e `reducer.ts` — **a única fonte de verdade das regras**. Sem dependência externa: o servidor importa estes mesmos arquivos, não uma cópia |
 | `src/sections/`, `src/shell/` | Componentes de tela, **cópia byte a byte** de `product-plan/` |
-| `src/dados/` | Supabase: carregar a noite, gravar o delta |
+| `src/dados/api.ts` | O único ponto do navegador que fala com o servidor. Só pede |
 | `src/telas/` | Traduzem `Noite` para as props que os componentes esperam. Nenhuma tela fala com o banco |
 | `src/estado/` | `NoiteProvider` — carregando, pronto, erro |
+| `servidor/dados/` | Carregar a noite, rodar a regra, gravar o delta. **É aqui que a regra manda** |
+| `servidor/auth/` | Senha em scrypt e sessão em cookie `httpOnly` |
+| `servidor/rotas/` | As cinco rotas da API |
+| `banco/migrations/` | O esquema, o RLS e os privilégios |
 
 ### Regras de ouro deste repositório
 
@@ -70,9 +74,16 @@ só o que nasceu ou mudou.
   Duas mudanças coordenadas já feitas: `shell/components/Login.tsx`, que
   trocou a porta de demonstração por autenticação real (F14 do PRD), e o campo
   `lugar` da Participação (item 4 da divergência D4).
-- **Sem modo de demonstração.** Sem credencial do Supabase o app não sobe, de
+- **Sem modo de demonstração.** Sem `DATABASE_URL` o servidor não sobe, de
   propósito. Um app que cai para dados de exemplo quando o banco some fica com
   cara de funcionando enquanto o caixa da noite não é registrado em lugar nenhum.
+- **A regra roda no servidor, e só lá** (DEC-007). O navegador manda a ação e
+  recebe o estado; ele nunca escreve no banco. Nunca mova o `reducer` de volta
+  para o cliente: foi o que permitia furar a N6 com um `curl`.
+- **Ação nova precisa entrar em `servidor/dados/validarAcao.ts`.** O que não
+  está na lista branca é recusado com 400 — e três ações do reducer
+  (`reiniciar`, `injetar-furo`, `avancar-tempo`) ficam de fora de propósito,
+  porque são ferramentas da simulação do Design OS.
 - **A regra de cor.** Verde, âmbar e vermelho pertencem ao veredito do caixa e
   a mais nada. Ação primária é ciano (`cv-ch-live`). Vem da N8: um botão verde
   gasta o canal que devia avisar do furo. Diferença esperada **nunca** usa
@@ -91,12 +102,21 @@ só o que nasceu ou mudou.
 ## Comandos
 
 ```bash
-npm run dev        # servidor de desenvolvimento
-npm test           # suíte inteira
-npm run provas     # só as provas herdadas das regras
-npm run banco:subir  # Supabase local (exige Docker)
-npm run banco:reset  # aplica migrations e seed
+npm run dev            # sobe API (3402) e tela (3400) juntas
+npm test               # suíte inteira
+npm run provas         # só as provas herdadas das regras
+
+npm run banco:subir    # Postgres local em Docker (porta 3432)
+npm run banco:migrar   # aplica as migrations pendentes
+npm run banco:semear   # clube e dealers
+npm run banco:operador -- --email <email> --nome "<nome>"
+
+npm run build          # tela + servidor
+npm start              # roda o que foi construído
 ```
+
+`DATABASE_URL` local:
+`postgres://caixa:caixa@localhost:3432/caixa_vivo`
 
 Os testes de banco **falham com a razão** quando o Docker não está rodando —
 não são pulados em silêncio. Um teste pulado passando de verde é mentira.

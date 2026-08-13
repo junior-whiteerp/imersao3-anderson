@@ -17,18 +17,18 @@ export default defineConfig({
      * trocar essa clareza por paralelismo.
      */
     fileParallelism: false,
-    /**
-     * `src/dados/supabase.ts` explode no import quando falta credencial — de
-     * propósito (Task 3). Sem estas duas aqui, todo teste que encoste em
-     * `NoiteProvider` ou `useOperador` quebraria antes da primeira asserção,
-     * e o erro falaria de credencial em vez de falar do que o teste testa.
-     *
-     * O cliente criado com elas nunca sai para a rede nos testes: quem fala
-     * com o Postgres é o `clienteDeTeste()` de `testes/banco.ts`.
-     */
     env: {
-      VITE_SUPABASE_URL: 'http://127.0.0.1:54321',
-      VITE_SUPABASE_ANON_KEY: 'chave-anonima-de-teste',
+      /**
+       * O mesmo banco para o pool dos testes e para o do servidor.
+       *
+       * `servidor/banco.ts` lê esta variável no import e explode sem ela — de
+       * propósito. Quem chama `aplicar` num teste está exercitando o caminho
+       * de verdade, RLS incluído.
+       */
+      DATABASE_URL:
+        process.env.DATABASE_URL_TESTE ??
+        process.env.DATABASE_URL ??
+        'postgres://caixa:caixa@localhost:3432/caixa_vivo',
       /**
        * `agoraEmMinutos` conta a partir da meia-noite LOCAL — é o fuso do clube
        * que define quando a noite começou, não o UTC. Sem fixar o fuso aqui, os

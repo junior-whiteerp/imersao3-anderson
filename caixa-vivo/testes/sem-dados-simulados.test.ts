@@ -42,7 +42,7 @@ describe('nenhum dado de exemplo apresentado como real', () => {
     const culpados: string[] = []
     for (const f of fontes) {
       // Os dealers do seed são reais no banco, não no código.
-      if (f.endsWith('supabase/seed.sql')) continue
+      if (f.endsWith('banco/seed.sql')) continue
       const texto = readFileSync(f, 'utf8')
       for (const marca of MARCAS_DA_DEMO) {
         if (texto.includes(marca)) culpados.push(`${f} → ${marca}`)

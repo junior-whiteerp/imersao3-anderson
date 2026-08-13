@@ -13,7 +13,7 @@ O código vive em dois repositórios irmãos, ignorados aqui de propósito:
 | Repositório | O que é | Autoridade |
 |---|---|---|
 | `imersao-teste-design/` | Design OS — protótipo, specs de tela, pacote exportado | O PRD |
-| `caixa-vivo/` | O app de verdade — React, Supabase, testes | O PRD |
+| `caixa-vivo/` | O app de verdade — React, backend TypeScript, Postgres, testes | O PRD |
 
 ---
 
@@ -53,7 +53,8 @@ Caminhos governados — mexer aqui fecha o portão:
 
 ```
 caixa-vivo/src/                          regra, tela, dado, navegação
-caixa-vivo/supabase/migrations/          o modelo de dados do PRD §9
+caixa-vivo/banco/migrations/             o modelo de dados do PRD §9
+caixa-vivo/servidor/                     a API e a regra, onde ela manda
 imersao-teste-design/product/            specs, roadmap, data-shape, tokens
 imersao-teste-design/product-plan/       o pacote exportado
 imersao-teste-design/src/sections/       componentes de tela

@@ -1,18 +1,26 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { clienteDeTeste, limparBanco, CLUBE_TESTE, DEALER_JOAO, DEALER_MARCOS } from './banco'
-import { aplicar } from '@/dados/aplicar'
-import { carregarNoite } from '@/dados/carregarNoite'
+import {
+  comConexao,
+  limparBanco,
+  uma,
+  CLUBE_TESTE,
+  DEALER_JOAO,
+  DEALER_MARCOS,
+  OPERADOR_TESTE,
+} from './banco'
+import { aplicar } from '../servidor/dados/aplicar'
+import { carregarNoite } from '../servidor/dados/carregarNoite'
 import { emMao, participacoesAbertas } from '@/regras/modelo'
 
-const db = clienteDeTeste()
-const acao = (a: unknown) => aplicar(db, CLUBE_TESTE, null, a as never)
+const acao = (a: unknown) => aplicar(CLUBE_TESTE, OPERADOR_TESTE, a as never)
+const noiteGravada = () => comConexao((c) => carregarNoite(c, CLUBE_TESTE))
 
 describe('a noite do PRD, de ponta a ponta e persistida', () => {
   beforeEach(limparBanco)
 
   it('abre, senta, lança, confirma, troca dealer, lança rake e congela o veredito', async () => {
     // ── Vazio ────────────────────────────────────────────────────────────
-    let noite = await carregarNoite(db, CLUBE_TESTE)
+    let noite = await noiteGravada()
     expect(noite.sessao).toBeNull()
 
     // ── Abertura ─────────────────────────────────────────────────────────
@@ -66,25 +74,31 @@ describe('a noite do PRD, de ponta a ponta e persistida', () => {
     expect(noite.checkpoints[0].veredito).toBe('fechado')
 
     // ── Persistência real: recarregar devolve o mesmo ─────────────────────
-    const recarregada = await carregarNoite(db, CLUBE_TESTE)
+    const recarregada = await noiteGravada()
     expect(recarregada.sessao!.id).toBe(noite.sessao!.id)
     expect(recarregada.movimentacoes).toHaveLength(3) // 2 retiradas + 1 rake
     expect(recarregada.checkpoints).toHaveLength(1)
     expect(emMao(recarregada, participacaoId)).toBe(1500)
 
     // ── Os dois motivos, em campos separados (PRD v1.7 §9) ───────────────
-    const { data: linha } = await db
-      .from('movimentacao')
-      .select('motivo_contingencia, motivo_limite')
-      .eq('id', segunda.id)
-      .single()
-    expect(linha!.motivo_contingencia).toBe('Jogador atendeu o telefone.')
-    expect(linha!.motivo_limite).toBeNull()
+    const linha = await uma<{ motivo_contingencia: string | null; motivo_limite: string | null }>(
+      'select motivo_contingencia, motivo_limite from movimentacao where id = $1',
+      [segunda.id]
+    )
+    expect(linha.motivo_contingencia).toBe('Jogador atendeu o telefone.')
+    expect(linha.motivo_limite).toBeNull()
+
+    // ── Quem lançou fica registrado (PRD §9) ─────────────────────────────
+    const autoria = await uma<{ lancado_por: string | null }>(
+      'select lancado_por from movimentacao where id = $1',
+      [segunda.id]
+    )
+    expect(autoria.lancado_por).toBe(OPERADOR_TESTE)
   })
 
   it('erro de banco aparece, não vira silêncio', async () => {
     await expect(
-      aplicar(db, 'clube-inexistente', null, {
+      aplicar('00000000-0000-0000-0000-0000000000ff', OPERADOR_TESTE, {
         tipo: 'abrir-sessao',
         clube: 'X',
         caixaInicial: 1000,

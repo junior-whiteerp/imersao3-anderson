@@ -11,3 +11,6 @@ supabase/.branches
 
 # Artefato de build incremental do tsc. Muda a cada build, nao e fonte.
 tsconfig.tsbuildinfo
+
+# Bundle do servidor.
+dist-servidor

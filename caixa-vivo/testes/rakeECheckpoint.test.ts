@@ -1,13 +1,22 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { clienteDeTeste, limparBanco, CLUBE_TESTE, DEALER_JOAO, DEALER_MARCOS } from './banco'
-import { aplicar } from '@/dados/aplicar'
-import { carregarNoite } from '@/dados/carregarNoite'
+import {
+  comConexao,
+  limparBanco,
+  sql,
+  uma,
+  CLUBE_TESTE,
+  DEALER_JOAO,
+  DEALER_MARCOS,
+  OPERADOR_TESTE,
+} from './banco'
+import { aplicar } from '../servidor/dados/aplicar'
+import { carregarNoite } from '../servidor/dados/carregarNoite'
 import { reducer } from '@/regras/reducer'
 import { checkpointsDaSessao } from '@/regras/modelo'
 
-const db = clienteDeTeste()
+const noiteGravada = () => comConexao((c) => carregarNoite(c, CLUBE_TESTE))
 const abrir = () =>
-  aplicar(db, CLUBE_TESTE, null, {
+  aplicar(CLUBE_TESTE, OPERADOR_TESTE, {
     tipo: 'abrir-sessao',
     clube: 'Clube Paris',
     caixaInicial: 20000,
@@ -18,10 +27,10 @@ describe('rake e checkpoint', () => {
 
   it('o lançamento de rake grava um checkpoint com veredito', async () => {
     await abrir()
-    await aplicar(db, CLUBE_TESTE, null, { tipo: 'abrir-turno', dealerId: DEALER_JOAO })
-    const noite = await carregarNoite(db, CLUBE_TESTE)
+    await aplicar(CLUBE_TESTE, OPERADOR_TESTE, { tipo: 'abrir-turno', dealerId: DEALER_JOAO })
+    const noite = await noiteGravada()
 
-    const depois = await aplicar(db, CLUBE_TESTE, null, {
+    const depois = await aplicar(CLUBE_TESTE, OPERADOR_TESTE, {
       tipo: 'lancar-rake',
       valor: 180,
       horaOcorrencia: noite.agora,
@@ -48,37 +57,28 @@ describe('rake e checkpoint', () => {
    */
   it('A5 — o rake vai para o turno da hora em que SAIU, não da digitação', async () => {
     const abertaEm = new Date(Date.now() - 60 * 60 * 1000)
-    const { data: s } = await db
-      .from('sessao')
-      .insert({
-        clube_id: CLUBE_TESTE,
-        aberta_em: abertaEm.toISOString(),
-        caixa_inicial: 20000,
-        aberta: true,
-      })
-      .select()
-      .single()
+    const s = await uma<{ id: string }>(
+      `insert into sessao (clube_id, aberta_em, caixa_inicial, aberta)
+       values ($1, $2, 20000, true) returning id`,
+      [CLUBE_TESTE, abertaEm.toISOString()]
+    )
 
-    const noite = await carregarNoite(db, CLUBE_TESTE)
+    const noite = await noiteGravada()
     const agora = noite.agora
     const inicioDaNoite = noite.sessao!.abertaEm
 
     // João das 20h às 20h40; Marcos das 20h40 até agora.
-    await db.from('turno').insert([
-      {
-        sessao_id: s!.id,
-        dealer_id: DEALER_JOAO,
-        numero: 1,
-        inicio: inicioDaNoite,
-        fim: agora - 20,
-      },
-      { sessao_id: s!.id, dealer_id: DEALER_MARCOS, numero: 2, inicio: agora - 20, fim: null },
-    ])
+    await sql(
+      `insert into turno (sessao_id, dealer_id, numero, inicio, fim) values
+         ($1, $2, 1, $4, $5),
+         ($1, $3, 2, $5, null)`,
+      [s.id, DEALER_JOAO, DEALER_MARCOS, inicioDaNoite, agora - 20]
+    )
 
     // O rake saiu da mesa 40 minutos atrás — dentro do turno do João —, mas só
     // agora está sendo digitado, já com o Marcos na mesa.
     const horaDeSaida = agora - 40
-    const depois = await aplicar(db, CLUBE_TESTE, null, {
+    const depois = await aplicar(CLUBE_TESTE, OPERADOR_TESTE, {
       tipo: 'lancar-rake',
       valor: 180,
       horaOcorrencia: horaDeSaida,
@@ -107,8 +107,8 @@ describe('rake e checkpoint', () => {
    */
   it('o checkpoint acha a ficha que sumiu, na janela certa (via reducer)', async () => {
     await abrir()
-    await aplicar(db, CLUBE_TESTE, null, { tipo: 'abrir-turno', dealerId: DEALER_JOAO })
-    const doBanco = await carregarNoite(db, CLUBE_TESTE)
+    await aplicar(CLUBE_TESTE, OPERADOR_TESTE, { tipo: 'abrir-turno', dealerId: DEALER_JOAO })
+    const doBanco = await noiteGravada()
 
     // 480 saem da caixa sem registro nenhum
     let noite = reducer(doBanco, { tipo: 'injetar-furo', valor: 480 })
@@ -122,8 +122,8 @@ describe('rake e checkpoint', () => {
 
   it('furoOculto realmente não sobrevive ao ciclo com banco — a ressalva acima é real', async () => {
     await abrir()
-    await aplicar(db, CLUBE_TESTE, null, { tipo: 'abrir-turno', dealerId: DEALER_JOAO })
-    const depois = await aplicar(db, CLUBE_TESTE, null, { tipo: 'injetar-furo', valor: 480 })
+    await aplicar(CLUBE_TESTE, OPERADOR_TESTE, { tipo: 'abrir-turno', dealerId: DEALER_JOAO })
+    const depois = await aplicar(CLUBE_TESTE, OPERADOR_TESTE, { tipo: 'injetar-furo', valor: 480 })
     expect(depois.furoOculto).toBe(0)
   })
 })
