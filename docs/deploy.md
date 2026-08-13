@@ -15,6 +15,7 @@
 | **Testes** | 123, todos contra um Postgres de verdade |
 | **Imagem** | **Publicada e pública** em `ghcr.io/junior-whiteerp/imersao3-anderson/caixa-vivo:latest`, para amd64 e arm64. Baixada do registro e conferida rodando a noite inteira |
 | **Esteira** | A cada push na `main`: 123 testes contra Postgres criado do zero pelas migrations, build dos dois apps, e a imagem republicada |
+| **TLS** | Conferido contra um Postgres com `ssl=on` e certificado autoassinado — a mesma forma de um banco gerenciado. Conexão em **TLS 1.3**, migrations e a noite inteira por cima dela |
 
 O Caixa Vivo deixou de ser publicável em CDN: **agora existe servidor**. O
 Design OS continua estático.
@@ -159,3 +160,15 @@ O `public/_redirects` já está lá.
 | Login responde 401 com a senha certa | O hash foi gerado por outro `banco:operador`, contra outro banco. Rode de novo apontando para o banco certo |
 | Tela abre, API dá 404 | O servidor não achou o `dist/`. `npm run build` roda a tela **e** o servidor — conferir se os dois passaram |
 | Cookie não persiste em produção | `NODE_ENV` diferente de `production` deixa o cookie sem `Secure`, e o navegador recusa em https |
+| `self signed certificate in certificate chain` | Não deve acontecer: o app já usa `rejectUnauthorized: false` para host que não é localhost, que é o necessário com banco gerenciado. Se aparecer, o host está sendo lido como local |
+
+### Sobre TLS
+
+O app liga TLS sozinho quando o host do `DATABASE_URL` não é `localhost` — que
+é o caso de qualquer banco gerenciado. `PGSSL=0` desliga, e só serve para um
+Postgres interno sem certificado.
+
+Isso foi conferido de verdade, não presumido: um Postgres com `ssl=on` e
+certificado autoassinado, o app conectando sem nenhum override, e o
+`pg_stat_ssl` confirmando **TLSv1.3 / TLS_AES_256_GCM_SHA384**. As migrations
+aplicaram e a noite inteira rodou por cima da conexão criptografada.
