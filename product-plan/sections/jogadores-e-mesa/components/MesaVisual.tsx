@@ -10,7 +10,7 @@ function reais(valor: number) {
 }
 
 export interface LugarOcupado {
-  /** Numero do lugar, de 1 a 10. */
+  /** Numero do lugar, de 1 a 10. Escolhido pelo operador, nao derivado de ordem. */
   lugar: number
   participacaoId: string
   nome: string
@@ -20,6 +20,13 @@ export interface LugarOcupado {
   /** Retirada esperando o jogador confirmar. O lugar fica marcado ate sair. */
   aguardando: number
   contingencias: number
+  /**
+   * Ja confirmou a primeira ficha na tela girada?
+   *
+   * `false` = lugar RESERVADO: a cadeira tem dono, mas ele ainda nao reconheceu
+   * ficha nenhuma. E a leitura da N2 que a F13 existe para dar (criterio A26).
+   */
+  validou: boolean
 }
 
 export interface MesaVisualProps {
@@ -156,6 +163,9 @@ export function MesaVisual({
           const uso = jogador.limite > 0 ? Math.min(comprometido / jogador.limite, 1) : 0
           const apertado = uso >= 0.8
           const esperando = jogador.aguardando > 0
+          // Cadeira com dono que ainda nao reconheceu ficha. Neutra de
+          // proposito: e o estado normal de quem acabou de chegar, nao alerta.
+          const reservado = !jogador.validou
 
           return (
             <button
@@ -163,8 +173,18 @@ export function MesaVisual({
               type="button"
               onClick={() => onAbrirJogador?.(jogador.participacaoId)}
               style={estilo}
-              aria-label={`Lugar ${numero}: ${jogador.nome}, ${reais(jogador.emMao)} em fichas, desde ${jogador.entrouAs}.`}
-              className={`${molduraDoLugar} cv-panel hover:scale-105 focus-visible:ring-2 focus-visible:outline-none ${
+              aria-label={
+                reservado
+                  ? `Lugar ${numero}: ${jogador.nome}, reservado, aguardando a primeira ficha.`
+                  : `Lugar ${numero}: ${jogador.nome}, ${reais(jogador.emMao)} em fichas, desde ${jogador.entrouAs}.`
+              }
+              className={`${molduraDoLugar} hover:scale-105 focus-visible:ring-2 focus-visible:outline-none ${
+                reservado
+                  ? // Tracejado e sem chapa: a cadeira tem dono, mas nada
+                    // aconteceu nela ainda.
+                    'border border-dashed border-[var(--cv-hairline)] bg-[var(--cv-panel-quiet)]'
+                  : 'cv-panel'
+              } ${
                 esperando
                   ? // Violeta: chrome, nao estado do caixa. Marca "esperando ele olhar".
                     'cv-ch-chrome cv-accent-ring'
@@ -188,20 +208,35 @@ export function MesaVisual({
                 ) : null}
               </span>
 
-              <span className="cv-text font-cv-mono cv-num mt-1 block text-[13px] leading-none font-bold">
-                {reais(jogador.emMao)}
-              </span>
+              {/* O reservado nao mostra valor nem barra: ele nao tem nem um nem
+                  outro. Mostrar R$ 0 com barra vazia faria a cadeira parecer um
+                  jogador zerado, que e coisa bem diferente de nao ter comecado. */}
+              {reservado ? (
+                <span className="cv-text-soft mt-1 block text-[10px] leading-tight">
+                  reservado
+                </span>
+              ) : (
+                <>
+                  <span className="cv-text font-cv-mono cv-num mt-1 block text-[13px] leading-none font-bold">
+                    {reais(jogador.emMao)}
+                  </span>
 
-              <span className="cv-panel-quiet mt-1.5 block h-1 overflow-hidden rounded-full">
-                <span
-                  className={`block h-full rounded-full bg-current ${
-                    apertado ? 'cv-ch-limite cv-accent-bg' : 'cv-text-soft bg-current opacity-45'
-                  }`}
-                  style={{ width: `${uso * 100}%` }}
-                />
-              </span>
+                  <span className="cv-panel-quiet mt-1.5 block h-1 overflow-hidden rounded-full">
+                    <span
+                      className={`block h-full rounded-full bg-current ${
+                        apertado ? 'cv-ch-limite cv-accent-bg' : 'cv-text-soft bg-current opacity-45'
+                      }`}
+                      style={{ width: `${uso * 100}%` }}
+                    />
+                  </span>
+                </>
+              )}
 
-              {esperando ? (
+              {reservado ? (
+                <span className="cv-text-soft font-cv-mono cv-num mt-1.5 block text-[9px] leading-tight opacity-80">
+                  aguarda a 1ª ficha
+                </span>
+              ) : esperando ? (
                 <span className="cv-accent-text font-cv-mono cv-num mt-1.5 block text-[9px] leading-tight font-semibold">
                   aguardando {reais(jogador.aguardando)}
                 </span>
@@ -224,7 +259,8 @@ export function MesaVisual({
             Na sessão, ainda de pé
           </h2>
           <p className="cv-text-soft mt-1.5 text-[12px] leading-snug">
-            O lugar é ocupado quando o jogador confirma a primeira ficha na tela girada.
+            Ainda sem cadeira. Toque num lugar livre para sentar alguém — o lugar
+            fica reservado até ele confirmar a primeira ficha na tela girada.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {emPe.map((p) => (
