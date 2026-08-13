@@ -13,7 +13,8 @@
 | **Caixa Vivo** | Um processo Node serve a API **e** a tela. Precisa de Postgres |
 | **Design OS** | Bundle estático puro. Não precisa de nada |
 | **Testes** | 123, todos contra um Postgres de verdade |
-| **Imagem** | `Dockerfile` conferido: build, migrations, bootstrap e a noite inteira rodando dentro do contêiner |
+| **Imagem** | **Publicada e pública** em `ghcr.io/junior-whiteerp/imersao3-anderson/caixa-vivo:latest`, para amd64 e arm64. Baixada do registro e conferida rodando a noite inteira |
+| **Esteira** | A cada push na `main`: 123 testes contra Postgres criado do zero pelas migrations, build dos dois apps, e a imagem republicada |
 
 O Caixa Vivo deixou de ser publicável em CDN: **agora existe servidor**. O
 Design OS continua estático.
@@ -51,9 +52,13 @@ carrega o que roda, sem `tsc`, sem Vite, sem esbuild. Roda como usuário `node`,
 não como root. **Imagem final: 325 MB.**
 
 ```bash
-cd caixa-vivo
-docker build -t caixa-vivo .
-docker run -p 3402:3402 -e DATABASE_URL=<url do postgres> caixa-vivo
+# Do registro, sem construir nada:
+docker run -p 3402:3402 -e DATABASE_URL=<url do postgres> \
+  ghcr.io/junior-whiteerp/imersao3-anderson/caixa-vivo:latest
+
+# Ou construindo daqui:
+cd caixa-vivo && docker build -t caixa-vivo . && docker run -p 3402:3402 \
+  -e DATABASE_URL=<url do postgres> caixa-vivo
 ```
 
 O contêiner aplica as migrations pendentes antes de escutar a porta. Depois,
@@ -68,13 +73,16 @@ docker exec -e SENHA_OPERADOR='<senha>' <conteiner> \
 > Os scripts `:prod` existem porque `tsx` é dependência de desenvolvimento e
 > não viaja na imagem. Em produção o que roda é o bundle que a build gerou.
 
-### Na Railway (servidor e banco no mesmo lugar)
+### Na Railway — apontando para a imagem pronta
+
+**O jeito mais curto, e o único já conferido de ponta a ponta.** A imagem está
+publicada e é pública; a Railway não precisa construir nada.
 
 ```bash
 cd /Users/juniorcesar/imersao3
 railway link                     # escolha o projeto imersao3-anderson
 railway add -d postgres          # o banco
-railway add -s caixa-vivo        # o app
+railway add -s caixa-vivo -i ghcr.io/junior-whiteerp/imersao3-anderson/caixa-vivo:latest
 ```
 
 No serviço `caixa-vivo`, em **Variables**:
@@ -84,14 +92,16 @@ No serviço `caixa-vivo`, em **Variables**:
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` — referência ao serviço de banco |
 | `NODE_ENV` | `production` — é o que liga o `Secure` no cookie de sessão |
 
-Em **Settings → Source → Connect Repo**, aponte para
-`junior-whiteerp/imersao3-anderson` com **Root Directory** = `caixa-vivo`.
-Sem o Root Directory a build falha: a raiz do repositório não tem `package.json`.
+O `CMD` da imagem aplica as migrations pendentes e então sobe o servidor —
+seguro repetir, cada migration roda uma vez só, anotada na tabela `migracao`.
 
-O `railway.json` manda construir pelo **Dockerfile**, não pela detecção
-automática: o que foi testado aqui é a imagem, e é ela que deve subir lá.
-O `CMD` aplica as migrations pendentes e então sobe o servidor — seguro
-repetir, cada migration roda uma vez só, anotada na tabela `migracao`.
+### Na Railway — construindo do repositório
+
+Se preferir que ela construa, **Settings → Source → Connect Repo** apontando
+para `junior-whiteerp/imersao3-anderson` com **Root Directory** = `caixa-vivo`.
+Sem o Root Directory a build falha: a raiz do repositório não tem
+`package.json`. O `railway.json` manda usar o **Dockerfile**, não a detecção
+automática.
 
 Depois do primeiro deploy, crie o clube e a conta do operador:
 
