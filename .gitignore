@@ -5,3 +5,6 @@ dist
 .DS_Store
 supabase/.temp
 supabase/.branches
+
+# Rascunho do subagent-driven-development.
+.superpowers/

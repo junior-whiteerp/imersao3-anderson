@@ -97,4 +97,68 @@ describe('invariantes do banco', () => {
     })
     expect(r.error?.code).toBe('23514')
   })
+
+  it('recusa duas participacoes abertas no mesmo lugar, e aceita depois de encerrar', async () => {
+    const { data: s } = await db
+      .from('sessao')
+      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 20000 })
+      .select()
+      .single()
+
+    const { data: j1 } = await db
+      .from('jogador')
+      .insert({
+        clube_id: CLUBE_TESTE, nome: 'Um', whatsapp: '11999990001',
+        limite: 3000, consentimento_em: new Date().toISOString(),
+      })
+      .select().single()
+    const { data: j2 } = await db
+      .from('jogador')
+      .insert({
+        clube_id: CLUBE_TESTE, nome: 'Dois', whatsapp: '11999990002',
+        limite: 3000, consentimento_em: new Date().toISOString(),
+      })
+      .select().single()
+
+    const primeira = await db.from('participacao').insert({
+      sessao_id: s!.id, jogador_id: j1!.id, entrou_as: 1140, lugar: 7,
+    })
+    expect(primeira.error).toBeNull()
+
+    const segunda = await db.from('participacao').insert({
+      sessao_id: s!.id, jogador_id: j2!.id, entrou_as: 1150, lugar: 7,
+    })
+    expect(segunda.error?.code).toBe('23505')
+
+    // Encerrar a conta devolve a cadeira ao pool — sem apagar o numero (N13).
+    await db
+      .from('participacao')
+      .update({ encerrada: true, saiu_as: 1200 })
+      .eq('sessao_id', s!.id)
+      .eq('jogador_id', j1!.id)
+
+    const terceira = await db.from('participacao').insert({
+      sessao_id: s!.id, jogador_id: j2!.id, entrou_as: 1210, lugar: 7,
+    })
+    expect(terceira.error).toBeNull()
+  })
+
+  it('recusa lugar fora da mesa', async () => {
+    const { data: s } = await db
+      .from('sessao')
+      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 20000 })
+      .select().single()
+    const { data: j } = await db
+      .from('jogador')
+      .insert({
+        clube_id: CLUBE_TESTE, nome: 'Onze', whatsapp: '11999990011',
+        limite: 3000, consentimento_em: new Date().toISOString(),
+      })
+      .select().single()
+
+    const r = await db.from('participacao').insert({
+      sessao_id: s!.id, jogador_id: j!.id, entrou_as: 1140, lugar: 11,
+    })
+    expect(r.error?.code).toBe('23514')
+  })
 })
