@@ -74,14 +74,26 @@ docker exec -e SENHA_OPERADOR='<senha>' <conteiner> \
 > Os scripts `:prod` existem porque `tsx` é dependência de desenvolvimento e
 > não viaja na imagem. Em produção o que roda é o bundle que a build gerou.
 
-### Na Railway — apontando para a imagem pronta
-
-**O jeito mais curto, e o único já conferido de ponta a ponta.** A imagem está
-publicada e é pública; a Railway não precisa construir nada.
+### Na Railway — um comando
 
 ```bash
-cd /Users/juniorcesar/imersao3
-railway link                     # escolha o projeto imersao3-anderson
+bash scripts/subir-na-railway.sh
+```
+
+Faz tudo: liga o projeto, cria o Postgres, cria o serviço apontando para a
+imagem já publicada, amarra as variáveis, gera o domínio, espera o app
+responder, semeia clube e dealers e pede os dados da conta do operador — a
+senha sem eco.
+
+Pode rodar de novo: cada passo confere antes de criar.
+
+**Se a conta estiver travada em cobrança, ele para no primeiro passo**, diz
+exatamente isso e sai com código 2 — sem deixar meia infraestrutura para trás.
+
+Preferindo à mão, é o mesmo em três comandos:
+
+```bash
+railway link                     # projeto imersao3-anderson
 railway add -d postgres          # o banco
 railway add -s caixa-vivo -i ghcr.io/junior-whiteerp/imersao3-anderson/caixa-vivo:latest
 ```
