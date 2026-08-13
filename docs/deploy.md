@@ -12,7 +12,7 @@
 | **Repositório** | `junior-whiteerp/imersao3-anderson`, branch `main` |
 | **Caixa Vivo** | Um processo Node serve a API **e** a tela. Precisa de Postgres |
 | **Design OS** | Bundle estático puro. Não precisa de nada |
-| **Testes** | 108, todos contra um Postgres de verdade |
+| **Testes** | 123, todos contra um Postgres de verdade |
 
 O Caixa Vivo deixou de ser publicável em CDN: **agora existe servidor**. O
 Design OS continua estático.
