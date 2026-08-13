@@ -1,12 +1,22 @@
-# Este repositório versiona a GOVERNANÇA do StackTrack: o PRD e o playbook.
-# O código vive em repositórios próprios e fica de fora de propósito — cada um
-# tem seu histórico, e misturá-los faria o diff do PRD sumir no meio de build.
-
-imersao-teste-design/
-caixa-vivo/
+# Este repositório versiona o StackTrack inteiro: a governança (PRD e playbook)
+# e os dois códigos.
+#
+# Ele começou versionando só a governança, e excluía `caixa-vivo/` e
+# `imersao-teste-design/` de propósito — o medo era o diff do PRD sumir no meio
+# de build. A exclusão caiu em 2026-08-12, quando o projeto passou a ter um
+# repositório único no GitHub e deploy na Railway: um pacote que não carrega o
+# código não dá para publicar. O medo original continua válido e a resposta a
+# ele agora é o `git log -- docs/PRD.md`, não a ausência do código.
 
 # Ruído do sistema e de ferramenta
 .DS_Store
 node_modules/
 *.zip
 .tostudy/
+
+# Rascunho do subagent-driven-development: ledger, briefs, pacotes de revisão.
+.superpowers/
+
+# Deck de apresentação do Caixa Vivo: 80 MB de screenshots renderizados.
+# Artefato de saída, não fonte. Se precisar versionar, tire esta linha.
+.apresentacao/
