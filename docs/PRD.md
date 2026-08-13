@@ -593,7 +593,7 @@ Escritos como coisas que dá para observar acontecendo.
 | A23 | Uma diferença acima de R$ 500 depois do checkpoint faz o painel recomendar suspender novas retiradas, **sem bloquear** a operação |
 | **A24** | O relatório de uma noite com duas janelas em falta abre mostrando a **soma das duas**, e não o resultado da conferência final — mesmo quando ela fechou em zero |
 | **A25** | O painel da noite mostra, sem nenhum toque, o veredito do último checkpoint, em que momento cada falta apareceu e qual dealer estava no turno |
-| **A26** | Na mesa ao vivo, quem entrou na sessão e ainda **não tem lugar** aparece "de pé", fora dos dez lugares. Quem tem lugar e ainda **não confirmou nenhuma ficha** aparece no lugar dele, **reservado** — sem valor em fichas, e a cadeira não aceita outra pessoa. O lugar vira ocupado no momento em que ele confirma a primeira retirada na tela girada |
+| **A26** | Na mesa ao vivo, quem entrou na sessão e ainda **não tem lugar** aparece "de pé", fora dos dez lugares. Quem tem lugar e ainda **não confirmou nenhuma ficha** aparece no lugar dele, **reservado** — sem valor em fichas, e a cadeira não aceita outra pessoa. O lugar vira ocupado no momento em que ele confirma a primeira retirada na tela girada. Enquanto reservado, a cadeira mostra **"aguarda a 1ª ficha"** mesmo havendo retirada esperando confirmação — o anel de espera ainda marca a pendência, e o valor fica a um toque |
 | **A27** | Não existe nenhuma credencial no código que o navegador baixa, e não existe caminho de entrada sem o servidor aceitar. Quando ele recusa, a tela mostra **a mensagem dele**, sem tradução |
 | **A28** | O lugar de um jogador **não muda** quando outro fecha a conta. A cadeira liberada volta a ficar livre, e a participação encerrada guarda o número que teve |
 
@@ -692,6 +692,13 @@ tarefas. Sete fecharam, com revisão independente em cada uma.
 | As três cópias de `modelo.ts` e `reducer.ts` idênticas de novo | A regra de cópia do plano da fatia vertical, restaurada e provada por hash |
 | `MesaVisual.tsx` desenha a cadeira **reservada** — tracejada, sem valor em fichas — nas três cópias | O estado que só existia no plano agora existe na tela **Ao vivo**, conferido com interação real no navegador |
 | O tipo `LugarOcupado` ganhou o campo `validou: boolean`, e os comentários dos três contratos pararam de descrever a semântica antiga | Quem implementar pelo contrato já lê a regra certa: **`emPe` é sem cadeira**, não "sem ficha validada" |
+
+⚠️ **O que este fechamento NÃO quer dizer.** No app (`caixa-vivo`) nenhuma tela
+monta o `MesaVisual` ainda: a aba Mesa renderiza a lista, e os dois despachos de
+`sentar` vão **sem** lugar. Então, em produção, toda participação continua
+nascendo sem cadeira até a fatia da tela **Ao vivo** chegar. A regra, o banco e o
+desenho estão prontos e provados; o caminho do operador até eles é a próxima
+fatia. Não leia este fechamento como "o operador já escolhe o lugar".
 
 ✅ **A D4 está fechada inteira.** Os quatro itens que a ratificação obrigava
 foram feitos: a mesa entrou nas specs, ganhou dado de amostra, o contrato
