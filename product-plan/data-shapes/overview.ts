@@ -210,9 +210,11 @@ export interface MesaData {
 /**
  * Um lugar ocupado na mesa ao vivo (F13).
  *
- * O lugar so e ocupado quando o jogador confirma a primeira ficha na tela
- * girada — criterio A26. Quem entrou e ainda nao validou nada aparece em
- * `emPe`, fora do anel de lugares.
+ * O lugar e ocupado quando o operador senta alguem numa cadeira livre —
+ * campo proprio da Participacao, nao ordem de chegada. `validou: false`
+ * marca a cadeira RESERVADA: tem dono, mas ele ainda nao confirmou ficha
+ * nenhuma (criterio A26). Quem nao tem cadeira nenhuma aparece em `emPe`,
+ * fora do anel de lugares.
  *
  * `lugar` e campo proprio da Participacao, escolhido pelo operador quando ele
  * senta alguem — nao o indice do array nem a ordem de chegada. Se fosse
@@ -241,7 +243,7 @@ export interface LugarOcupado {
 
 export interface MesaAoVivoData {
   lugares: LugarOcupado[]
-  /** Quem entrou na sessao mas ainda nao validou nenhuma ficha. */
+  /** Quem entrou na sessao e ainda NAO TEM CADEIRA. Nao e "quem nao validou". */
   emPe: { participacaoId: string; nome: string }[]
   dealer: string
   turno: number
