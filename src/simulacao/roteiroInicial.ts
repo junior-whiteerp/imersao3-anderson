@@ -93,7 +93,7 @@ export const roteiro: Passo[] = [
       'O operador digita o valor e gira a tela. O jogador confirma antes de a ficha sair — é isso que acaba com a contestação depois.',
     rota: '/fichas',
     acoes: [
-      { tipo: 'sentar', jogadorId: 'j-paulo' },
+      { tipo: 'sentar', jogadorId: 'j-paulo', lugar: 3 },
       { tipo: 'lancar-retirada', participacaoId: 'AUTO:j-paulo', valor: 2000 },
       { tipo: 'confirmar', movimentacaoId: 'ULTIMA', confirmacao: 'presencial' },
     ],
@@ -105,7 +105,7 @@ export const roteiro: Passo[] = [
       'R$ 1.000 confirmados. O saldo de cada jogador fica atualizado sozinho — ninguém soma nada à mão.',
     rota: '/mesa',
     acoes: [
-      { tipo: 'sentar', jogadorId: 'j-rafa' },
+      { tipo: 'sentar', jogadorId: 'j-rafa', lugar: 1 },
       { tipo: 'lancar-retirada', participacaoId: 'AUTO:j-rafa', valor: 1000 },
       { tipo: 'confirmar', movimentacaoId: 'ULTIMA', confirmacao: 'presencial' },
     ],
@@ -117,7 +117,7 @@ export const roteiro: Passo[] = [
       'Três na mesa, R$ 3.800 fora da caixa. Esse número não é furo: são fichas que saíram e ainda não voltaram.',
     rota: '/ao-vivo',
     acoes: [
-      { tipo: 'sentar', jogadorId: 'j-tiago' },
+      { tipo: 'sentar', jogadorId: 'j-tiago', lugar: 6 },
       { tipo: 'lancar-retirada', participacaoId: 'AUTO:j-tiago', valor: 800 },
       { tipo: 'confirmar', movimentacaoId: 'ULTIMA', confirmacao: 'presencial' },
     ],
@@ -136,7 +136,7 @@ export const roteiro: Passo[] = [
     narracao: 'Quarto jogador na mesa. A noite entra no ritmo.',
     rota: '/mesa',
     acoes: [
-      { tipo: 'sentar', jogadorId: 'j-dede' },
+      { tipo: 'sentar', jogadorId: 'j-dede', lugar: 4 },
       { tipo: 'lancar-retirada', participacaoId: 'AUTO:j-dede', valor: 1500 },
       { tipo: 'confirmar', movimentacaoId: 'ULTIMA', confirmacao: 'presencial' },
     ],
@@ -170,7 +170,7 @@ export const roteiro: Passo[] = [
     rota: '/caixa',
     acoes: [
       { tipo: 'lancar-rake', valor: 220, horaOcorrencia: paraMinutos('20h15') },
-      { tipo: 'sentar', jogadorId: 'j-bia' },
+      { tipo: 'sentar', jogadorId: 'j-bia', lugar: 8 },
       { tipo: 'lancar-retirada', participacaoId: 'AUTO:j-bia', valor: 1400 },
       { tipo: 'confirmar', movimentacaoId: 'ULTIMA', confirmacao: 'presencial' },
     ],
@@ -216,7 +216,7 @@ export const roteiro: Passo[] = [
     narracao: 'Mais um na mesa, já no turno de João.',
     rota: '/mesa',
     acoes: [
-      { tipo: 'sentar', jogadorId: 'j-nando' },
+      { tipo: 'sentar', jogadorId: 'j-nando', lugar: 10 },
       { tipo: 'lancar-retirada', participacaoId: 'AUTO:j-nando', valor: 1200 },
       { tipo: 'confirmar', movimentacaoId: 'ULTIMA', confirmacao: 'presencial' },
     ],

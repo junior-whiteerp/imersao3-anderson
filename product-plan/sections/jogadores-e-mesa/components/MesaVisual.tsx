@@ -32,7 +32,7 @@ export interface LugarOcupado {
 export interface MesaVisualProps {
   lugares: LugarOcupado[]
   totalDeLugares?: number
-  /** Quem entrou na sessao mas ainda nao validou nenhuma ficha. */
+  /** Quem entrou na sessao e ainda NAO TEM CADEIRA. Nao e "quem nao validou". */
   emPe?: { participacaoId: string; nome: string }[]
   dealer?: string
   turno?: number
@@ -41,19 +41,82 @@ export interface MesaVisualProps {
   onSentar?: (lugar: number) => void
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   OS MATERIAIS DA MESA
+   ───────────────────────────────────────────────────────────────────────────
+   Mogno, couro, feltro e carpete sao MATERIA, nao tema de interface. Uma mesa
+   de poker nao muda de madeira quando o operador troca para o tema claro — por
+   isso estes valores sao fixos, e nao variaveis `--cv-*`. O que o tema controla
+   e a interface por cima: cartoes, texto, canais de estado.
+
+   A cor e deliberadamente contida. A referencia que originou este desenho tem
+   feltro laranja saturado; reproduzi-lo em tela cheia gastaria o canal ambar,
+   que neste produto significa "revisar a janela". Aqui o realismo vem de LUZ,
+   TEXTURA e PROFUNDIDADE — poca de lampada, verniz, grao de feltro, fibra de
+   carpete e sombra projetada. Materia, nao pigmento.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/** Carpete de pelo cortado: fibra fina, mosqueado irregular e a poca da luz. */
+const CARPETE = {
+  backgroundColor: '#332b26',
+  backgroundImage: [
+    // A poca da lampada no teto, caindo sobre a mesa e morrendo nas bordas.
+    'radial-gradient(78% 62% at 50% 34%, rgba(255,206,150,0.16) 0%, transparent 72%)',
+    // Manchas largas: carpete de salao nunca e uniforme, ele tem sombra de uso.
+    'radial-gradient(30% 26% at 18% 78%, rgba(0,0,0,0.34) 0%, transparent 100%)',
+    'radial-gradient(26% 22% at 84% 24%, rgba(0,0,0,0.30) 0%, transparent 100%)',
+    // Mosqueado do pelo: tres frequencias, senao vira textura de tecido regular.
+    'radial-gradient(circle at 20% 30%, rgba(255,236,214,0.10) 0.6px, transparent 1.3px)',
+    'radial-gradient(circle at 65% 70%, rgba(0,0,0,0.55) 0.6px, transparent 1.4px)',
+    'radial-gradient(circle at 85% 15%, rgba(255,236,214,0.055) 0.5px, transparent 1.1px)',
+    // A direcao do pelo, escovada. E o que tira o "chapado" do fundo.
+    'repeating-linear-gradient(96deg, rgba(255,240,220,0.055) 0 1px, transparent 1px 3px)',
+    'repeating-linear-gradient(6deg, rgba(0,0,0,0.40) 0 1px, transparent 1px 4px)',
+    // Vinheta: o salao acaba no escuro, mas sem apagar a textura.
+    'radial-gradient(128% 104% at 50% 42%, transparent 44%, rgba(0,0,0,0.66) 100%)',
+  ].join(','),
+  backgroundSize: 'auto, auto, auto, 3px 3px, 4px 4px, 5px 5px, 3px 3px, 4px 4px, auto',
+} as const
+
 /**
- * A mesa vista de cima.
+ * Mogno envernizado.
  *
- * O lugar nao e decoracao: ele so e ocupado quando o jogador valida a primeira
- * ficha na tela girada. Antes disso ele esta na sessao, mas de pe — e isso
- * aparece separado, embaixo.
- *
- * O feltro e neutro de proposito, e continua neutro depois do redesenho. Verde
- * neste produto quer dizer "caixa fechado"; uma mesa verde ocupando a tela
- * inteira gastaria o unico canal que o operador tem para saber que a noite esta
- * fechando. O que da materia a mesa aqui e luz e textura, nao cor: a poca da
- * lampada no centro, o aro de couro na borda e o grao por cima.
+ * O anel e uma casca: so a faixa externa aparece, o miolo fica sob o feltro.
+ * Por isso a secao redonda e desenhada nos ultimos 12% do raio — dentro disso
+ * a cor nao importa. O verniz entra por cima, num conic que varre a elipse:
+ * luz forte no quadrante de cima-esquerda, reflexo fraco embaixo. Luz que nao
+ * varre parece plastico pintado, nao madeira polida.
  */
+const TRILHO = {
+  backgroundImage: [
+    'conic-gradient(from 190deg at 50% 50%, rgba(255,236,210,0) 0deg, rgba(255,242,222,0.40) 44deg, rgba(255,238,216,0.06) 74deg, rgba(255,236,214,0) 120deg, rgba(255,224,196,0.03) 200deg, rgba(255,230,204,0.20) 248deg, rgba(255,230,204,0.02) 280deg, rgba(255,236,210,0) 360deg)',
+    'radial-gradient(closest-side at 50% 50%, #120504 0%, #120504 90.5%, #2f1108 92.2%, #62290f 93.6%, #8d4526 95.2%, #6a3018 96.8%, #351307 98.4%, #0e0403 100%)',
+  ].join(','),
+} as const
+
+/** Feltro de argila: acolchoado em losangos, com o grao por cima. */
+const FELTRO = {
+  backgroundColor: '#332821',
+  backgroundImage: [
+    // A poca da lampada, deslocada para cima como a luminaria real.
+    'radial-gradient(52% 56% at 50% 37%, rgba(255,178,104,0.30) 0%, transparent 72%)',
+    // O acolchoado: dois feixes cruzados a 45 graus, um de luz e um de sombra,
+    // e o losango nasce do cruzamento — nao de uma imagem.
+    'repeating-linear-gradient(45deg, rgba(255,226,190,0.075) 0 1.2px, transparent 1.2px 13px)',
+    'repeating-linear-gradient(-45deg, rgba(0,0,0,0.30) 0 1.2px, transparent 1.2px 13px)',
+    // Grao curto do feltro, denso.
+    'radial-gradient(circle at 40% 60%, rgba(0,0,0,0.34) 0.6px, transparent 1.2px)',
+    'radial-gradient(circle at 75% 25%, rgba(255,226,190,0.05) 0.5px, transparent 1px)',
+    // A sombra que o trilho projeta para dentro, no pe da mesa.
+    'radial-gradient(130% 112% at 50% 116%, rgba(0,0,0,0.72) 0%, transparent 56%)',
+  ].join(','),
+  backgroundSize: 'auto, auto, auto, 3px 3px, 4px 4px, auto',
+} as const
+
+/** Couro preto da cadeira: costura de cima na luz, assento no escuro. */
+const COURO =
+  'linear-gradient(176deg, #57493f 0%, #322a25 22%, #1c1715 62%, #0d0b0a 100%)'
+
 export function MesaVisual({
   lugares,
   totalDeLugares = 10,
@@ -66,42 +129,156 @@ export function MesaVisual({
 }: MesaVisualProps) {
   const ocupados = new Map(lugares.map((l) => [l.lugar, l]))
 
-  // Elipse: lugar 1 embaixo no centro, seguindo no sentido horario.
-  // O raio horizontal e menor que o vertical em proporcao porque os cartoes sao
-  // largos: se eles saem ate a borda, o texto vaza da area visivel.
-  const posicao = (indice: number) => {
-    const angulo = ((180 + indice * (360 / totalDeLugares)) * Math.PI) / 180
-    return {
-      left: `${50 + 40 * Math.sin(angulo)}%`,
-      top: `${50 - 38 * Math.cos(angulo)}%`,
-    }
+  // Lugar 1 embaixo no centro, seguindo no sentido horario. Tres raios saem do
+  // mesmo angulo, e e isso que alinha cadeira, cartao e porta-fichas na mesma
+  // linha radial — como numa mesa de verdade, onde tudo pertence ao lugar.
+  const anguloDe = (indice: number) => ((180 + indice * (360 / totalDeLugares)) * Math.PI) / 180
+
+  const emTorno = (indice: number, raioX: number, raioY: number) => {
+    const a = anguloDe(indice)
+    return { left: `${50 + raioX * Math.sin(a)}%`, top: `${50 - raioY * Math.cos(a)}%` }
   }
 
-  // Ocupado e livre ocupam o mesmo espaco, senao o anel de lugares fica torto.
+  /** Graus, para girar cadeira e porta-fichas de frente para o centro. */
+  const grausDe = (indice: number) => indice * (360 / totalDeLugares)
+
+  /**
+   * Quanto o lugar esta "na frente", de 0 (fundo da mesa) a 1 (perto de quem
+   * olha). A mesa e vista de um angulo, entao quem esta na frente aparece maior
+   * e mais claro — e o unico jeito de dez cadeiras iguais lerem como um salao
+   * em vez de um relogio.
+   */
+  const proximidade = (indice: number) => (1 - Math.cos(anguloDe(indice))) / 2
+
+  // Ocupado, reservado e livre ocupam o mesmo espaco, senao o anel fica torto.
   const molduraDoLugar =
-    'absolute w-[5.75rem] -translate-x-1/2 -translate-y-1/2 rounded-xl p-1.5 text-center transition-transform duration-200 sm:w-28'
+    'absolute z-20 w-[5.75rem] -translate-x-1/2 -translate-y-1/2 rounded-xl p-1.5 text-center backdrop-blur-md transition-transform duration-200 sm:w-28'
 
   return (
     <div className="space-y-4">
-      <div className="cv-rise relative mx-auto aspect-square w-full max-w-2xl sm:aspect-[7/5]">
-        {/* O aro de couro: dois anéis, um escuro por fora e um filete de luz
-            por dentro. É o que dá espessura à mesa sem usar sombra falsa. */}
-        <div className="absolute inset-x-[14%] inset-y-[17%] rounded-[50%] bg-[var(--cv-panel)] p-[1.2%] shadow-[0_30px_60px_-30px_var(--cv-shadow-deep)] ring-1 ring-[var(--cv-hairline)]">
-          <div className="relative size-full overflow-hidden rounded-[50%] ring-1 ring-[var(--cv-highlight)]">
-            {/* O feltro. Neutro, com a lâmpada caindo no meio. */}
-            <div
-              className="cv-grain absolute inset-0"
-              style={{
-                backgroundColor: 'var(--cv-room)',
-                backgroundImage:
-                  'radial-gradient(60% 60% at 50% 42%, var(--cv-lamp) 0%, transparent 72%), radial-gradient(120% 100% at 50% 115%, var(--cv-shadow) 0%, transparent 60%)',
-              }}
-            />
-            {/* A linha de aposta: o círculo gravado onde as fichas param. */}
-            <div className="absolute inset-[7%] rounded-[50%] border border-[var(--cv-hairline)]" />
+      {/* O SALAO. O carpete nao e enfeite: e ele que da chao a mesa e faz a
+          sombra projetada ter onde cair. Sem chao, a mesa flutua. */}
+      <div
+        className="cv-rise relative mx-auto aspect-[4/3] w-full max-w-3xl overflow-hidden rounded-3xl ring-1 ring-[var(--cv-hairline)] sm:aspect-[7/5]"
+        style={CARPETE}
+      >
+        {/* A sombra que a mesa joga no carpete. Deslocada para baixo porque a
+            luminaria esta acima e um pouco a frente. */}
+        <div
+          className="pointer-events-none absolute inset-x-[12%] inset-y-[25%] rounded-[50%] blur-2xl"
+          style={{ background: 'rgba(0,0,0,0.62)', transform: 'translateY(4%) scale(1.05)' }}
+          aria-hidden="true"
+        />
 
-            {/* O centro carrega o estado da noite, nao um logo. */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 px-6 text-center">
+        {/* AS CADEIRAS. Ficam atras de tudo, giradas de frente para o centro.
+            Aparecem so pelo encosto, como numa foto de angulo: o assento fica
+            escondido sob o trilho. Quem esta na frente vem maior e mais claro. */}
+        {Array.from({ length: totalDeLugares }, (_, i) => {
+          const jogador = ocupados.get(i + 1)
+          const perto = proximidade(i)
+          const escala = 0.74 + 0.42 * perto
+          return (
+            <div
+              key={`cadeira-${i}`}
+              className="pointer-events-none absolute z-0 h-[17%] w-[12.5%] -translate-x-1/2 -translate-y-1/2"
+              style={{
+                ...emTorno(i, 45, 40),
+                transform: `translate(-50%,-50%) rotate(${grausDe(i)}deg) scale(${escala})`,
+                // O fundo do salao e mais escuro: a luz da luminaria nao chega la.
+                filter: `brightness(${(0.55 + 0.55 * perto).toFixed(2)})`,
+              }}
+              aria-hidden="true"
+            >
+              {/* O encosto. Silhueta de cadeira de cassino: ombros largos e
+                  quase quadrados, base que estreita e some sob o trilho. Forma
+                  redonda demais vira mancha — e a quina que faz ler cadeira. */}
+              <div
+                className="absolute inset-x-0 top-0 h-[74%] rounded-[26%_26%_40%_40%/32%_32%_24%_24%]"
+                style={{
+                  background: COURO,
+                  boxShadow: jogador
+                    ? // Cadeira tomada: filete quente na costura de cima. De longe,
+                      // o anel de cadeiras ja conta quantos lugares foram.
+                      'inset 0 2.5px 0 -0.5px rgba(255,222,190,0.44), inset 0 -10px 16px -8px rgba(0,0,0,0.95), 0 14px 24px -10px rgba(0,0,0,0.95)'
+                    : 'inset 0 2px 0 -0.5px rgba(255,236,214,0.14), inset 0 -10px 16px -8px rgba(0,0,0,0.95), 0 12px 20px -11px rgba(0,0,0,0.9)',
+                }}
+              >
+                {/* O painel central do estofado, afundado entre duas gomas. */}
+                <div
+                  className="absolute inset-x-[22%] inset-y-[13%] rounded-[22%_22%_36%_36%/26%_26%_20%_20%]"
+                  style={{
+                    background:
+                      'linear-gradient(178deg, rgba(255,232,204,0.08) 0%, rgba(0,0,0,0.34) 100%)',
+                    boxShadow:
+                      'inset 1.5px 0 0 rgba(0,0,0,0.55), inset -1.5px 0 0 rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,232,204,0.10)',
+                  }}
+                />
+              </div>
+              {/* A coluna, saindo por baixo do encosto e entrando sob a mesa. */}
+              <div
+                className="absolute bottom-0 left-1/2 h-[30%] w-[20%] -translate-x-1/2 rounded-b-[45%]"
+                style={{
+                  background: 'linear-gradient(180deg, #191410 0%, #262019 55%, #0a0807 100%)',
+                }}
+              />
+            </div>
+          )
+        })}
+
+        {/* A MESA. Trilho de mogno por fora, feltro por dentro.
+            A elipse e larga e baixa de proposito: e a forma que uma mesa oval
+            assume quando vista de um angulo, e nao de cima a prumo. */}
+        <div
+          className="absolute inset-x-[14%] inset-y-[26%] rounded-[50%] p-[3.6%] shadow-[0_34px_60px_-22px_rgba(0,0,0,0.95)]"
+          style={TRILHO}
+        >
+          {/* O filete de luz na quina de cima do trilho: a aresta do verniz. */}
+          <div
+            className="pointer-events-none absolute inset-0 rounded-[50%]"
+            style={{
+              boxShadow:
+                'inset 0 2px 1px -1px rgba(255,240,220,0.45), inset 0 -3px 6px -3px rgba(0,0,0,0.9)',
+            }}
+            aria-hidden="true"
+          />
+
+          {/* OS PORTA-FICHAS. Rasgos recuados no trilho, um por lugar — o
+              detalhe que mais denuncia mesa de verdade numa foto de cima. */}
+          {Array.from({ length: totalDeLugares }, (_, i) => (
+            <div
+              key={`bandeja-${i}`}
+              className="pointer-events-none absolute h-[3.2%] w-[9%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+              style={{
+                ...emTorno(i, 46, 46),
+                transform: `translate(-50%,-50%) rotate(${grausDe(i)}deg)`,
+                background: 'linear-gradient(180deg, #150a06 0%, #3a1c11 70%, #6b3722 100%)',
+                boxShadow: 'inset 0 1.5px 2px rgba(0,0,0,0.95), 0 1px 0 rgba(255,222,190,0.16)',
+              }}
+              aria-hidden="true"
+            />
+          ))}
+
+          {/* O FELTRO. */}
+          <div className="relative size-full overflow-hidden rounded-[50%]" style={FELTRO}>
+            {/* A linha de aposta, gravada no feltro. */}
+            <div
+              className="pointer-events-none absolute inset-[8%] rounded-[50%] border border-[rgba(255,232,206,0.10)]"
+              style={{ boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.35)' }}
+              aria-hidden="true"
+            />
+
+            {/* A ilha do dealer: o painel escuro no meio da mesa. Na mesa de
+                verdade e onde vai a marca da casa. Aqui carrega o estado da
+                noite — o operador olha o centro e sabe em que pe esta. */}
+            <div
+              className="absolute inset-x-[19%] inset-y-[26%] flex flex-col items-center justify-center gap-1.5 rounded-[50%] px-6 text-center"
+              style={{
+                background:
+                  'radial-gradient(100% 100% at 50% 30%, rgba(30,34,44,0.94) 0%, rgba(14,16,22,0.97) 100%)',
+                boxShadow:
+                  'inset 0 1px 0 rgba(255,240,220,0.16), inset 0 -2px 8px rgba(0,0,0,0.7), 0 2px 10px rgba(0,0,0,0.5)',
+              }}
+            >
               {turno != null ? (
                 <span className="cv-live-text cv-engraved flex items-center gap-1.5 text-[9.5px] font-semibold tracking-[0.18em] uppercase">
                   <span
@@ -114,16 +291,16 @@ export function MesaVisual({
                   Turno {turno} · {dealer}
                 </span>
               ) : (
-                <span className="cv-text-soft cv-engraved text-[9.5px] font-semibold tracking-[0.18em] uppercase">
+                <span className="cv-engraved text-[9.5px] font-semibold tracking-[0.18em] text-[rgba(233,224,214,0.55)] uppercase">
                   Nenhum turno aberto
                 </span>
               )}
               {fichasEmJogo != null ? (
                 <>
-                  <span className="cv-text font-cv-mono cv-num text-[26px] leading-none font-bold sm:text-[34px]">
+                  <span className="font-cv-mono cv-num text-[26px] leading-none font-bold text-[#f2ece4] sm:text-[34px]">
                     {reais(fichasEmJogo)}
                   </span>
-                  <span className="cv-text-soft cv-engraved text-[9px] font-semibold tracking-[0.18em] uppercase">
+                  <span className="cv-engraved text-[9px] font-semibold tracking-[0.18em] text-[rgba(233,224,214,0.55)] uppercase">
                     em jogo
                   </span>
                 </>
@@ -132,11 +309,12 @@ export function MesaVisual({
           </div>
         </div>
 
-        {/* Os lugares */}
+        {/* OS LUGARES. Ficam por cima de tudo, sobre a borda do trilho — e onde
+            o jogador poe as maos. Sao a interface; a mesa e o contexto. */}
         {Array.from({ length: totalDeLugares }, (_, i) => {
           const numero = i + 1
           const jogador = ocupados.get(numero)
-          const estilo = posicao(i)
+          const estilo = emTorno(i, 43, 37)
 
           if (!jogador) {
             return (
@@ -146,7 +324,7 @@ export function MesaVisual({
                 onClick={() => onSentar?.(numero)}
                 style={estilo}
                 aria-label={`Lugar ${numero}, livre. Sentar alguém.`}
-                className={`${molduraDoLugar} cv-text-soft border border-dashed border-[var(--cv-hairline)] bg-[var(--cv-panel-quiet)] hover:scale-105 hover:border-[var(--cv-live)] hover:text-[var(--cv-live)] focus-visible:ring-2 focus-visible:outline-none`}
+                className={`${molduraDoLugar} border border-dashed border-[rgba(255,236,214,0.20)] bg-[rgba(20,16,13,0.42)] text-[rgba(233,224,214,0.62)] hover:scale-105 hover:border-[var(--cv-live)] hover:text-[var(--cv-live)] focus-visible:ring-2 focus-visible:outline-none`}
               >
                 <span className="flex items-center justify-center gap-1">
                   <span className="font-cv-mono cv-num text-[9px]">{numero}</span>
@@ -178,11 +356,11 @@ export function MesaVisual({
                   ? `Lugar ${numero}: ${jogador.nome}, reservado, aguardando a primeira ficha.`
                   : `Lugar ${numero}: ${jogador.nome}, ${reais(jogador.emMao)} em fichas, desde ${jogador.entrouAs}.`
               }
-              className={`${molduraDoLugar} hover:scale-105 focus-visible:ring-2 focus-visible:outline-none ${
+              className={`${molduraDoLugar} shadow-[0_8px_18px_-8px_rgba(0,0,0,0.9)] hover:scale-105 focus-visible:ring-2 focus-visible:outline-none ${
                 reservado
-                  ? // Tracejado e sem chapa: a cadeira tem dono, mas nada
-                    // aconteceu nela ainda.
-                    'border border-dashed border-[var(--cv-hairline)] bg-[var(--cv-panel-quiet)]'
+                  ? // Tracejado e translucido: a cadeira tem dono, mas nada
+                    // aconteceu nela ainda. O feltro aparece por tras.
+                    'border border-dashed border-[rgba(255,236,214,0.24)] bg-[rgba(20,16,13,0.46)]'
                   : 'cv-panel'
               } ${
                 esperando
@@ -194,10 +372,18 @@ export function MesaVisual({
               {/* O nome quebra em duas linhas em vez de cortar: "Paulo Vi…" nao
                   serve para um operador conferir de longe quem esta no lugar. */}
               <span className="flex items-start justify-center gap-1">
-                <span className="cv-text-soft font-cv-mono cv-num mt-px text-[9px] opacity-70">
+                <span
+                  className={`font-cv-mono cv-num mt-px text-[9px] opacity-70 ${
+                    reservado ? 'text-[rgba(233,224,214,0.75)]' : 'cv-text-soft'
+                  }`}
+                >
                   {numero}
                 </span>
-                <span className="cv-text text-[12px] leading-tight font-semibold break-words">
+                <span
+                  className={`text-[12px] leading-tight font-semibold break-words ${
+                    reservado ? 'text-[#efe7dd]' : 'cv-text'
+                  }`}
+                >
                   {jogador.nome}
                 </span>
                 {jogador.contingencias > 0 ? (
@@ -212,7 +398,7 @@ export function MesaVisual({
                   outro. Mostrar R$ 0 com barra vazia faria a cadeira parecer um
                   jogador zerado, que e coisa bem diferente de nao ter comecado. */}
               {reservado ? (
-                <span className="cv-text-soft mt-1 block text-[10px] leading-tight">
+                <span className="mt-1 block text-[10px] leading-tight text-[rgba(233,224,214,0.70)]">
                   reservado
                 </span>
               ) : (
@@ -233,7 +419,7 @@ export function MesaVisual({
               )}
 
               {reservado ? (
-                <span className="cv-text-soft font-cv-mono cv-num mt-1.5 block text-[9px] leading-tight opacity-80">
+                <span className="font-cv-mono cv-num mt-1.5 block text-[9px] leading-tight text-[rgba(233,224,214,0.62)]">
                   aguarda a 1ª ficha
                 </span>
               ) : esperando ? (
@@ -251,7 +437,9 @@ export function MesaVisual({
         })}
       </div>
 
-      {/* Quem entrou mas ainda nao validou ficha nenhuma. */}
+      {/* Quem entrou na sessao e ainda NAO TEM CADEIRA — nao "quem nao validou".
+          Sao coisas diferentes desde que o lugar virou campo: quem tem cadeira e
+          nao validou aparece no lugar dele, reservado. */}
       {emPe.length > 0 ? (
         <section className="cv-panel cv-rise cv-d1 rounded-2xl p-4">
           <h2 className="cv-text-soft cv-engraved flex items-center gap-1.5 text-[9.5px] font-semibold tracking-[0.18em] uppercase">

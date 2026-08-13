@@ -41,6 +41,23 @@ Esta seção tem **duas vistas da mesma mesa**. A lista serve para operar; o des
 - Lugar com retirada esperando confirmação recebe o canal violeta: é chrome, marca "esperando ele olhar", e **não** é estado do caixa
 - Lugar livre é tocável e senta alguém que já está cadastrado
 - O centro carrega o estado da noite, não um logo: turno, dealer e fichas em jogo
-- **O feltro é neutro, e continua neutro.** Verde neste produto quer dizer "caixa fechado"; uma mesa verde ocupando a tela inteira gastaria o único canal que o operador tem para saber que a noite está fechando. O que dá matéria à mesa é luz e textura, não cor
+
+### A matéria da mesa
+
+A mesa é desenhada como uma mesa de verdade, num salão de verdade — decisão do dono do processo em 2026-08-12, a partir de uma foto de referência. Cinco camadas, todas em CSS, sem imagem:
+
+| Camada | O que é |
+|---|---|
+| **Carpete** | Pelo cortado: fibra escovada em duas direções, mosqueado em três frequências, manchas de uso e a poça da luminária. É ele que dá chão à mesa — sem chão, ela flutua |
+| **Trilho** | Mogno envernizado. O brilho **varre** a elipse num `conic-gradient` em vez de ser uniforme: luz que não varre parece plástico pintado, não madeira polida |
+| **Feltro** | Argila, com acolchoado em losangos nascido do cruzamento de dois feixes a 45°, mais grão curto por cima |
+| **Cadeiras** | Encosto de couro com painel afundado e coluna por baixo, giradas de frente para o centro. **Maiores e mais claras na frente** — é o que faz dez cadeiras iguais lerem como salão e não como relógio |
+| **Porta-fichas** | Rasgos recuados no trilho, um por lugar |
+
+**A cadeira de quem está sentado tem um filete quente na costura de cima; a vazia não.** De longe, o anel de cadeiras já conta quantos lugares foram tomados, antes de o operador ler um nome.
+
+⚠️ **O realismo vem de luz e textura, nunca de pigmento saturado.** A foto de referência tem feltro laranja forte. Reproduzi-lo em tela cheia gastaria o canal âmbar, que neste produto significa "revisar a janela" — a mesa ficaria linda e o alerta ficaria invisível. Por isso o mogno é escuro, o feltro é argila dessaturada e o carpete é carvão. **Verde, âmbar e vermelho continuam pertencendo só ao veredito e ao aviso de limite.**
+
+**Os materiais não seguem o tema.** Uma mesa de pôquer não muda de madeira quando o operador troca para o tema claro. Madeira, couro, feltro e carpete são valores fixos; o tema controla a interface por cima — cartões, texto e canais de estado.
 
 ✅ **O número do lugar tem origem no dado** desde 2026-08-12: `Participacao.lugar`, com índice no banco garantindo um jogador por cadeira entre as contas abertas. Fecha o item 4 da divergência D4 do PRD.
