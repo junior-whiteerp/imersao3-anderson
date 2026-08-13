@@ -15,8 +15,12 @@ export function MesaAoVivoConectada({ onAbrirJogador }: MesaAoVivoConectadaProps
   const [sentando, setSentando] = useState<number | null>(null)
 
   const vista = mesaAoVivoVista(noite)
-  const naMesa = new Set(participacoesAbertas(noite).map((p) => p.jogadorId))
-  const disponiveis = noite.jogadores.filter((j) => !naMesa.has(j.id))
+  const abertas = participacoesAbertas(noite)
+  // Quem ja tem cadeira nao aparece na lista de sentar. Quem esta de pe
+  // aparece: a acao `sentar` da a cadeira a ele sem criar participacao nova,
+  // e sem isso quem entrou pela aba Mesa ficaria de pe para sempre.
+  const sentados = new Set(abertas.filter((p) => p.lugar !== undefined).map((p) => p.jogadorId))
+  const disponiveis = noite.jogadores.filter((j) => !sentados.has(j.id))
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-7 sm:px-6">
@@ -69,8 +73,8 @@ export function MesaAoVivoConectada({ onAbrirJogador }: MesaAoVivoConectadaProps
           ) : (
             <>
               <p className="cv-text-soft mt-1.5 text-[12px] leading-snug">
-                Ele entra na sessão agora, mas só ocupa o lugar quando confirmar a
-                primeira ficha na tela girada.
+                A cadeira fica reservada para ele agora. Ela só passa a ocupada
+                quando ele confirmar a primeira ficha na tela girada.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {disponiveis.map((jogador) => (
@@ -78,7 +82,7 @@ export function MesaAoVivoConectada({ onAbrirJogador }: MesaAoVivoConectadaProps
                     key={jogador.id}
                     type="button"
                     onClick={() => {
-                      despachar({ tipo: 'sentar', jogadorId: jogador.id })
+                      despachar({ tipo: 'sentar', jogadorId: jogador.id, lugar: sentando })
                       setSentando(null)
                     }}
                     className="cv-btn-quiet h-11 px-3.5 text-[13px] hover:-translate-y-px focus-visible:ring-2 focus-visible:outline-none"

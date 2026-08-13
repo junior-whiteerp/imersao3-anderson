@@ -45,6 +45,7 @@ import {
   somaRetiradas,
   turnoAberto,
   turnosDaSessao,
+  validouFicha,
   type Noite,
   type Participacao,
 } from './modelo'
@@ -188,51 +189,38 @@ export function mesaVista(noite: Noite): JogadorNaMesa[] {
 /**
  * A mesa vista de cima.
  *
- * O lugar e derivado da ordem em que cada jogador validou a PRIMEIRA ficha na
- * tela girada — e nao da ordem em que ele entrou na sessao. Quem ainda nao
- * validou nada aparece "de pe", fora dos lugares.
+ * O lugar e o campo `lugar` da Participacao, escolhido pelo operador — nao
+ * mais a posicao num array ordenado por hora de confirmacao. Aquela derivacao
+ * fazia todo mundo andar uma cadeira quando alguem fechava a conta.
  *
- * ⚠️ Derivar o lugar assim serve para a previa. Num produto de verdade o lugar
- * precisa ser um campo proprio da Participacao: o operador vai querer escolher
- * onde a pessoa senta, e o lugar tem de sobreviver a uma troca de mesa.
+ * Quem tem cadeira e ainda nao confirmou ficha vem com `validou: false`: a
+ * mesa desenha o lugar RESERVADO. Quem nao tem cadeira aparece "de pe".
+ * Item 4 da divergencia D4 do PRD, criterio A26.
  */
 export function mesaAoVivoVista(noite: Noite) {
-  const movimentacoes = movimentacoesDaSessao(noite)
+  const abertas = participacoesAbertas(noite)
 
-  const comHoraDeSentar = participacoesAbertas(noite).map((p) => {
-    const validadas = movimentacoes
-      .filter(
-        (m) =>
-          m.participacaoId === p.id && m.tipo === 'retirada' && m.situacao === 'confirmada'
-      )
-      .map((m) => m.horaOcorrencia)
-    return {
-      participacao: p,
-      sentouAs: validadas.length > 0 ? Math.min(...validadas) : null,
-    }
-  })
+  const lugares: LugarOcupado[] = abertas
+    .filter((p): p is typeof p & { lugar: number } => p.lugar !== undefined)
+    .sort((a, b) => a.lugar - b.lugar)
+    .map((participacao) => {
+      const jogador = jogadorDe(noite, participacao.id)
+      return {
+        lugar: participacao.lugar,
+        participacaoId: participacao.id,
+        nome: jogador?.nome ?? '—',
+        entrouAs: formatarHora(participacao.entrouAs),
+        emMao: emMao(noite, participacao.id),
+        limite: jogador?.limite ?? 0,
+        aguardando: aguardando(noite, participacao.id),
+        contingencias: contingenciasDe(noite, participacao.id),
+        validou: validouFicha(noite, participacao.id),
+      }
+    })
 
-  const sentados = comHoraDeSentar
-    .filter((x): x is typeof x & { sentouAs: number } => x.sentouAs !== null)
-    .sort((a, b) => a.sentouAs - b.sentouAs)
-
-  const lugares: LugarOcupado[] = sentados.map(({ participacao }, indice) => {
-    const jogador = jogadorDe(noite, participacao.id)
-    return {
-      lugar: indice + 1,
-      participacaoId: participacao.id,
-      nome: jogador?.nome ?? '—',
-      entrouAs: formatarHora(participacao.entrouAs),
-      emMao: emMao(noite, participacao.id),
-      limite: jogador?.limite ?? 0,
-      aguardando: aguardando(noite, participacao.id),
-      contingencias: contingenciasDe(noite, participacao.id),
-    }
-  })
-
-  const emPe = comHoraDeSentar
-    .filter((x) => x.sentouAs === null)
-    .map(({ participacao }) => ({
+  const emPe = abertas
+    .filter((p) => p.lugar === undefined)
+    .map((participacao) => ({
       participacaoId: participacao.id,
       nome: jogadorDe(noite, participacao.id)?.nome ?? '—',
     }))
