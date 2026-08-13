@@ -11,7 +11,15 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  // Portas do projeto: faixa 3300-3999.
+  // strictPort desligado — se a porta estiver ocupada, o Vite sobe para a proxima
+  // dentro da faixa (3301, 3302, ...).
   server: {
-    port: 3000,
+    port: 3300,
+    strictPort: false,
+  },
+  preview: {
+    port: 3301,
+    strictPort: false,
   },
 })

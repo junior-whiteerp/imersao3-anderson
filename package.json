@@ -4,10 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "./scripts/start.sh",
+    "ports": "./scripts/start.sh --check",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prova": "esbuild scripts/prova-simulacao.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/prova.mjs --alias:@=./src --log-level=error && node node_modules/.cache/prova.mjs",
+    "prova-graves": "esbuild scripts/prova-graves.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/prova-graves.mjs --alias:@=./src --log-level=error && node node_modules/.cache/prova-graves.mjs",
+    "prova-medias": "esbuild scripts/prova-medias.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/prova-medias.mjs --alias:@=./src --log-level=error && node node_modules/.cache/prova-medias.mjs",
+    "provas": "npm run prova && npm run prova-graves && npm run prova-medias"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.11",
