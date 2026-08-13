@@ -18,8 +18,12 @@ export default defineConfig({
     port: 3300,
     strictPort: false,
   },
+  // Em producao (Railway) a porta vem por --port $PORT na linha de comando,
+  // que vence esta. allowedHosts libera o dominio da Railway — sem isso o
+  // Vite recusa o Host desconhecido com 403. E seguro: so se serve bundle.
   preview: {
     port: 3301,
     strictPort: false,
+    allowedHosts: true,
   },
 })
