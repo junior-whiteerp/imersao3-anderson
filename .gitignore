@@ -17,6 +17,8 @@ node_modules/
 # Rascunho do subagent-driven-development: ledger, briefs, pacotes de revisão.
 .superpowers/
 
-# Deck de apresentação do Caixa Vivo: 80 MB de screenshots renderizados.
-# Artefato de saída, não fonte. Se precisar versionar, tire esta linha.
+# Apresentações do Caixa Vivo. Artefato de saída, não fonte — e o repositório
+# é público, então quem publica um pitch é você, não o build.
+# Para publicar, tire a linha correspondente.
 .apresentacao/
+docs/apresentacao-junior.html
