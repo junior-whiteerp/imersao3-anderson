@@ -1,0 +1,183 @@
+import { useState, type FormEvent } from 'react'
+import { ArrowRight, Eye, EyeOff, Lock, TriangleAlert, User } from 'lucide-react'
+import { FundoDePoker } from './FundoDePoker'
+import { MarcaStackTrack } from './MarcaStackTrack'
+
+/**
+ * A porta do caixa.
+ *
+ * Esta tela não decide mais quem entra: ela pergunta, e quem responde é o
+ * Supabase, do outro lado da rede. O que ela faz é o que sempre fez bem —
+ * pedir os dois campos, mostrar o que deu errado e não deixar o operador
+ * clicar duas vezes enquanto a resposta não chega.
+ *
+ * A mensagem de erro é a que veio de fora, sem tradução. Trocar
+ * "e-mail não confirmado" por "usuário ou senha não confere" faria o operador
+ * tentar a senha de novo a noite inteira contra um problema que não é a senha.
+ */
+export interface LoginProps {
+  /** Nome do clube, no rodapé. Contexto de onde o operador está entrando. */
+  clube?: string
+  /** Lança quando a autenticação recusa. A mensagem do erro vai para a tela. */
+  onEntrar: (usuario: string, senha: string) => Promise<void>
+}
+
+export function Login({ clube = 'Clube Paris', onEntrar }: LoginProps) {
+  const [usuario, setUsuario] = useState('')
+  const [senha, setSenha] = useState('')
+  const [mostrarSenha, setMostrarSenha] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
+  const [enviando, setEnviando] = useState(false)
+
+  async function enviar(evento: FormEvent) {
+    evento.preventDefault()
+    setErro(null)
+    setEnviando(true)
+    try {
+      await onEntrar(usuario.trim(), senha)
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Não foi possível entrar.')
+      setSenha('')
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  const campo =
+    'cv-text font-cv-sans h-13 w-full bg-transparent pr-3 pl-11 text-[15px] outline-none placeholder:opacity-40'
+
+  return (
+    <div
+      data-cv-tema="escuro"
+      className="cv-kiosk cv-grain cv-text font-cv-sans relative isolate flex min-h-screen items-center justify-center px-5 py-10"
+    >
+      {/* A mesa de poker atrás de tudo: fichas, cartas e naipes que respondem
+          ao ponteiro. Fica sob o véu do próprio componente, para não competir
+          com o formulário. */}
+      <FundoDePoker />
+
+      <div className="relative z-10 w-full max-w-sm">
+        {/* O anel da ficha em volta da marca. Parado de propósito: a cena atrás
+            já dá vida à tela, e uma animação em laço aqui deixaria o aparelho
+            da mesa repintando a noite inteira sem ninguém olhando. */}
+        <div className="relative mb-9 flex flex-col items-center text-center">
+          <span
+            className="cv-live-text pointer-events-none absolute -top-10 left-1/2 aspect-square w-72 -translate-x-1/2 rounded-full border-[12px] border-dashed opacity-[0.09]"
+            aria-hidden="true"
+          />
+
+          <div className="relative">
+            <MarcaStackTrack tamanho="lg" brilho empilhada />
+          </div>
+
+          {/* StackTrack é a plataforma; Caixa Vivo é o que está atrás desta
+              porta. A serifa separa os dois sem precisar de rótulo. */}
+          <h1 className="cv-text-soft font-cv-display relative mt-5 text-[22px] leading-none italic">
+            Caixa Vivo
+          </h1>
+          <p className="cv-text-soft cv-engraved relative mt-3 text-[9.5px] font-semibold tracking-[0.22em] uppercase">
+            Release 1 · {clube}
+          </p>
+        </div>
+
+        <form onSubmit={enviar} className="cv-panel cv-ticks cv-rise rounded-2xl p-6">
+          <div>
+            <label
+              htmlFor="usuario"
+              className="cv-text-soft cv-engraved block text-[9.5px] font-semibold tracking-[0.16em] uppercase"
+            >
+              Operador
+            </label>
+            <div className="cv-panel-quiet cv-line relative mt-2 flex items-center rounded-xl border focus-within:ring-2">
+              <User
+                className="cv-text-soft pointer-events-none absolute left-3.5 size-4 opacity-60"
+                aria-hidden="true"
+              />
+              <input
+                id="usuario"
+                name="usuario"
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                value={usuario}
+                onChange={(e) => {
+                  setUsuario(e.target.value)
+                  setErro(null)
+                }}
+                placeholder="seu usuário"
+                className={campo}
+              />
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <label
+              htmlFor="senha"
+              className="cv-text-soft cv-engraved block text-[9.5px] font-semibold tracking-[0.16em] uppercase"
+            >
+              Senha
+            </label>
+            <div className="cv-panel-quiet cv-line relative mt-2 flex items-center rounded-xl border focus-within:ring-2">
+              <Lock
+                className="cv-text-soft pointer-events-none absolute left-3.5 size-4 opacity-60"
+                aria-hidden="true"
+              />
+              <input
+                id="senha"
+                name="senha"
+                type={mostrarSenha ? 'text' : 'password'}
+                inputMode={mostrarSenha ? 'text' : 'numeric'}
+                autoComplete="current-password"
+                value={senha}
+                onChange={(e) => {
+                  setSenha(e.target.value)
+                  setErro(null)
+                }}
+                placeholder="••••"
+                className={`${campo} font-cv-mono cv-num pr-12 tracking-[0.2em]`}
+              />
+              {/* O operador digita de pé, com uma mão, sob pressão. Poder
+                  conferir o que digitou evita a terceira tentativa. */}
+              <button
+                type="button"
+                onClick={() => setMostrarSenha((v) => !v)}
+                aria-label={mostrarSenha ? 'Esconder a senha' : 'Mostrar a senha'}
+                className="cv-text-soft hover:cv-text absolute right-3 rounded p-1 transition-colors"
+              >
+                {mostrarSenha ? (
+                  <EyeOff className="size-4" aria-hidden="true" />
+                ) : (
+                  <Eye className="size-4" aria-hidden="true" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {erro ? (
+            <p
+              role="alert"
+              className="cv-ch-suspender cv-accent-text cv-accent-fill mt-4 flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-[12.5px] font-medium"
+            >
+              <TriangleAlert className="size-4 shrink-0" aria-hidden="true" />
+              {erro}
+            </p>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={enviando || !usuario.trim() || !senha}
+            className="cv-ch-live cv-btn cv-shine mt-6 h-14 w-full text-[14.5px] hover:-translate-y-px focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-35 disabled:saturate-0 disabled:hover:translate-y-0"
+          >
+            {enviando ? 'Entrando…' : 'Entrar no caixa'}
+            <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
+          </button>
+
+          <p className="cv-text-soft mt-4 text-center text-[11px] leading-relaxed">
+            O nome de quem entra fica registrado em cada lançamento da noite.
+          </p>
+        </form>
+
+      </div>
+    </div>
+  )
+}

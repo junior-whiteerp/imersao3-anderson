@@ -1,0 +1,22 @@
+{
+  "jogadorSelecionado": {
+    "id": "j1",
+    "nome": "Rafa",
+    "limite": 3000,
+    "emMao": 1480,
+    "aguardando": 0
+  },
+  "contingenciasNaSessao": 2,
+  "tetoContingencias": 3,
+  "extrato": {
+    "jogador": "Paulo Vidal",
+    "entrouAs": "19h05",
+    "saiuAs": "20h50",
+    "linhas": [
+      { "id": "m1", "hora": "19h08", "tipo": "retirada", "valor": 2000, "confirmacao": "presencial" },
+      { "id": "m2", "hora": "19h52", "tipo": "retirada", "valor": 1500, "confirmacao": "presencial" },
+      { "id": "m3", "hora": "20h31", "tipo": "retirada", "valor": 1520, "confirmacao": "contingencia" },
+      { "id": "m4", "hora": "20h50", "tipo": "devolucao", "valor": 5960, "confirmacao": "presencial" }
+    ]
+  }
+}

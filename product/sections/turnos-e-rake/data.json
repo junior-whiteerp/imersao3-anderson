@@ -1,0 +1,26 @@
+{
+  "turnoAberto": {
+    "id": "t3",
+    "numero": 3,
+    "dealer": "João Ribeiro",
+    "inicio": "21h05",
+    "decorrido": "42min",
+    "rakeDoTurno": 560
+  },
+  "turnosFechados": [
+    { "id": "t1", "numero": 1, "dealer": "João Ribeiro", "inicio": "19h00", "fim": "20h10", "rakeDoTurno": 180 },
+    { "id": "t2", "numero": 2, "dealer": "Marcos Lima", "inicio": "20h10", "fim": "21h05", "rakeDoTurno": 220 }
+  ],
+  "dealers": [
+    { "id": "d1", "nome": "João Ribeiro" },
+    { "id": "d2", "nome": "Marcos Lima" },
+    { "id": "d3", "nome": "Cris Andrade" }
+  ],
+  "lancamentos": [
+    { "id": "r1", "horaSaida": "19h35", "horaDigitada": "19h37", "valor": 180, "turno": 1, "dealer": "João Ribeiro" },
+    { "id": "r2", "horaSaida": "20h15", "horaDigitada": "20h18", "valor": 220, "turno": 2, "dealer": "Marcos Lima" },
+    { "id": "r3", "horaSaida": "21h08", "horaDigitada": "21h12", "valor": 260, "turno": 3, "dealer": "João Ribeiro" },
+    { "id": "r4", "horaSaida": "21h40", "horaDigitada": "21h41", "valor": 300, "turno": 3, "dealer": "João Ribeiro" }
+  ],
+  "horaAtual": "21h47"
+}

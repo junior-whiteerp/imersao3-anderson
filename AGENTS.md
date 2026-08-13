@@ -1,5 +1,34 @@
 # Agent Directives for Design OS
 
+> ## ⚠️ Neste repositório, o PRD manda — e ele mora fora daqui
+>
+> ```
+> ../docs/PRD.md   →  /Users/juniorcesar/imersao3/docs/PRD.md
+> ```
+>
+> O produto sendo desenhado aqui é o **Caixa Vivo**, e a autoridade sobre regra,
+> escopo e tela é o PRD, não a spec da seção. Quando os dois discordarem, o PRD
+> ganha e a spec é que precisa mudar.
+>
+> **A rotina obrigatória está em `../AGENTS.md`.** Um Stop hook
+> (`../scripts/prd-gate.sh`) impede encerrar o turno quando algo em `product/`,
+> `product-plan/`, `src/sections/` ou `src/shell/` for mais novo que o PRD.
+>
+> ### A regra que esta pasta quebrou, e não pode quebrar de novo
+>
+> A tela **"Ao vivo"** (mesa visual de 10 lugares) nasceu em
+> `src/simulacao/telas/MesaAoVivoConectada.tsx` e **nunca voltou para a spec**.
+> Aí o `/export-product` gerou o pacote a partir do código, e o pacote saiu
+> mandando construir uma tela que o PRD tinha marcado como fora de escopo.
+>
+> **Componente novo que nasce no código tem que voltar para `product/`** — para
+> a `spec.md` da seção, para o `sample-data.json` e para o `types.ts` — antes de
+> ser exportado. Se ele não cabe na spec, ele não devia existir ainda.
+>
+> Vale o mesmo para o pacote: quando o PRD marca uma coisa com 🔴 (pendente de
+> decisão do dono), a ressalva tem que aparecer nas `instructions/` do
+> `product-plan/`. Quem recebe o pacote não lê o PRD.
+
 Design OS is a **product planning and design tool** that helps users define their product vision, sketch out their data shape, design their UI, and prepare export packages for implementation in a separate codebase.
 
 > **Important**: Design OS is a planning tool, not the end product codebase. The screen designs and components generated here are meant to be exported and integrated into your actual product's codebase.
@@ -127,6 +156,26 @@ When creating screen designs, follow these guidelines:
 - **Props-Based Components**: All screen design components must accept data and callbacks via props. Never import data directly in exportable components.
 
 - **No Navigation in Section Screen Designs**: Section screen designs should not include navigation chrome. The shell handles all navigation.
+
+---
+
+## Local Development — Ports
+
+Start the project with **`npm start`** (`scripts/start.sh`). It frees the project's ports — killing whatever is listening on them — and then boots every service. Use `npm run ports` to see what is holding a port without killing anything.
+
+This project runs on the **3300-3999** port range. Never use 3000, 5173, or 4173.
+
+| Service | Port | Configured in |
+|---------|------|---------------|
+| Vite dev server (`npm run dev`) | `3300` | `vite.config.ts` → `server.port` |
+| Vite preview (`npm run preview`) | `3301` | `vite.config.ts` → `preview.port` |
+
+Rules:
+
+- **Never change the ports out of the 3300-3999 range.** If a new service needs a port, pick the next free one in the range (3302, 3303, ...), add a row to the table above, and add it to the `PORTS` array in `scripts/start.sh`.
+- **Keep `strictPort: false`.** When a port is already taken, Vite walks up to the next free one, which keeps everything inside the range instead of failing the boot.
+- **Screen design URLs use 3300**: `http://localhost:3300/sections/[section-id]/screen-designs/[screen-design-name]`.
+- When you change a port, update every reference in the same pass — `vite.config.ts`, `scripts/start.sh`, `docs/getting-started.md`, and `.claude/commands/design-os/screenshot-design.md`.
 
 ---
 

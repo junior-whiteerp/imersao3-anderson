@@ -26,10 +26,12 @@ npm install
 ## Start the Dev Server
 
 ```bash
-npm run dev
+npm start
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+This frees the project's ports (3300, 3301) if anything is still holding them, then boots the dev server.
+
+Open [http://localhost:3300](http://localhost:3300) in your browser.
 
 ## Open Claude Code
 

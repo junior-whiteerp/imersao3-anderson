@@ -21,3 +21,9 @@ dist/
 # Logs
 *.log
 npm-debug.log*
+
+# Rascunho do subagent-driven-development: ledger, briefs, pacotes de revisao.
+.superpowers/
+
+# Pacote exportado, empacotado. Artefato gerado — o conteudo vive em product-plan/.
+product-plan.zip

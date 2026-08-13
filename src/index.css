@@ -207,3 +207,510 @@
     }
   }
 }
+
+/* ═════════════════════════════════════════════════════════════════════════
+   CAIXA VIVO — tema do produto · "Salão, 2 da manhã"
+   ─────────────────────────────────────────────────────────────────────────
+   Isto NÃO é o tema do Design OS (stone/lime, DM Sans), que fica acima e
+   intocado. É o tema do produto desenhado: um painel de instrumento num
+   salão de poker depois da meia-noite. Nada aqui vaza para a interface do
+   Design OS — todo seletor é prefixado `cv-`.
+
+   Três decisões carregam a identidade:
+
+   1. TIPOGRAFIA COM PAPÉIS SEPARADOS. Serifa de alto contraste para o
+      veredito (julgamento), sans para instrução, mono para fato. O operador
+      distingue "o que o app decidiu" de "o que o app registrou" pela forma
+      da letra, antes de ler a palavra.
+
+   2. O CANAL DO VEREDITO É EXCLUSIVO. Verde, âmbar e vermelho só aparecem
+      em checkpoint e faixa de estado. Todo o resto do app — inclusive a
+      ação primária — usa ciano. Sem essa reserva, a regra N8 do PRD
+      ("diferença esperada nunca usa vermelho") não tem como ser cumprida:
+      qualquer botão colorido já gasta o canal que devia avisar do furo.
+
+   3. O ESTADO ENTRA POR VARIÁVEL, NÃO POR CLASSE. `.cv-ch-*` troca
+      --cv-accent, e painel, régua, brilho e número leem dela. Trocar o
+      veredito é trocar uma classe, não dez.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* Serifa de alto contraste: o veredito. Sans companheira: a instrução.
+     Mono grotesca: o dinheiro e a hora. */
+  --font-cv-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-cv-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-cv-mono: "Azeret Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ── O tema do produto é próprio, e não a classe `.dark` do Design OS ─────
+   O Design OS sincroniza `.dark` com a preferência do sistema e reaplica em
+   intervalo curto. Se o Caixa Vivo pendurasse o tema dele ali, os dois ficariam
+   brigando pela mesma classe — e o produto exportado herdaria essa briga.
+
+   Então o produto carrega o tema num atributo próprio, `data-cv-tema`, posto
+   pelo AppShell. O escuro é o padrão: é um app de madrugada, e é assim que ele
+   nasce mesmo quando ninguém declara nada. */
+
+/* ── A sala, de dia: papel osso sob a mesma lâmpada ───────────────────── */
+[data-cv-tema='claro'] {
+  --cv-room: var(--color-stone-100);
+  --cv-lamp: color-mix(in srgb, var(--color-amber-200) 45%, transparent);
+  --cv-felt: color-mix(in srgb, var(--color-emerald-200) 40%, transparent);
+  --cv-panel: color-mix(in srgb, white 92%, var(--color-stone-200));
+  --cv-panel-quiet: color-mix(in srgb, white 50%, transparent);
+  --cv-hairline: color-mix(in srgb, var(--color-stone-900) 13%, transparent);
+  --cv-hairline-soft: color-mix(in srgb, var(--color-stone-900) 7%, transparent);
+  --cv-highlight: color-mix(in srgb, white 90%, transparent);
+  --cv-shadow: color-mix(in srgb, var(--color-stone-900) 12%, transparent);
+  --cv-shadow-deep: color-mix(in srgb, var(--color-stone-900) 18%, transparent);
+  --cv-ink: var(--color-stone-900);
+  --cv-ink-soft: var(--color-stone-500);
+  --cv-engrave: color-mix(in srgb, white 85%, transparent);
+  --cv-grain-blend: multiply;
+  --cv-grain-opacity: 0.3;
+  --cv-tick: color-mix(in srgb, var(--color-stone-900) 22%, transparent);
+  /* Ciano é o sinal de "vivo": marca, foco e ação primária. Nunca veredito. */
+  --cv-live: var(--color-cyan-700);
+  --cv-live-soft: color-mix(in srgb, var(--color-cyan-600) 12%, transparent);
+  --cv-accent: var(--color-stone-500);
+  --cv-accent-soft: color-mix(in srgb, var(--color-stone-500) 9%, transparent);
+  /* Tinta que fica POR CIMA do preenchimento de acento. No claro os acentos são
+     tons 600/700, então branco. No escuro são 300/400, e branco ali seria
+     ilegível — ver `.dark`. */
+  --cv-on-accent: white;
+}
+
+/* ── A sala, de madrugada: feltro escuro e a luz caindo no meio ───────── */
+:root,
+[data-cv-tema='escuro'] {
+  --cv-room: var(--color-zinc-950);
+  --cv-lamp: color-mix(in srgb, var(--color-amber-300) 11%, transparent);
+  --cv-felt: color-mix(in srgb, var(--color-emerald-500) 8%, transparent);
+  --cv-panel: color-mix(in srgb, var(--color-zinc-900) 80%, transparent);
+  --cv-panel-quiet: color-mix(in srgb, var(--color-zinc-800) 35%, transparent);
+  --cv-hairline: color-mix(in srgb, white 12%, transparent);
+  --cv-hairline-soft: color-mix(in srgb, white 6%, transparent);
+  --cv-highlight: color-mix(in srgb, white 9%, transparent);
+  --cv-shadow: color-mix(in srgb, black 50%, transparent);
+  --cv-shadow-deep: color-mix(in srgb, black 70%, transparent);
+  --cv-ink: var(--color-stone-100);
+  --cv-ink-soft: var(--color-zinc-400);
+  --cv-engrave: color-mix(in srgb, black 55%, transparent);
+  --cv-grain-blend: overlay;
+  --cv-grain-opacity: 0.45;
+  --cv-tick: color-mix(in srgb, white 26%, transparent);
+  --cv-live: var(--color-cyan-300);
+  --cv-live-soft: color-mix(in srgb, var(--color-cyan-400) 16%, transparent);
+  --cv-accent: var(--color-zinc-400);
+  --cv-accent-soft: color-mix(in srgb, var(--color-zinc-400) 12%, transparent);
+  --cv-on-accent: var(--color-zinc-950);
+}
+
+/* ── Os canais de estado ──────────────────────────────────────────────────
+   Um por veredito, mais dois de chrome. Quem aplica a classe não precisa
+   saber a cor: pinta com `cv-accent-*` e a variável resolve. */
+.cv-ch-neutro {
+  --cv-accent: var(--cv-ink-soft);
+  --cv-accent-soft: color-mix(in srgb, var(--cv-ink-soft) 9%, transparent);
+}
+.cv-ch-fecha {
+  --cv-accent: var(--color-emerald-400);
+  --cv-accent-soft: color-mix(in srgb, var(--color-emerald-400) 13%, transparent);
+}
+.cv-ch-revisar {
+  --cv-accent: var(--color-amber-400);
+  --cv-accent-soft: color-mix(in srgb, var(--color-amber-400) 14%, transparent);
+}
+.cv-ch-suspender {
+  --cv-accent: var(--color-rose-400);
+  --cv-accent-soft: color-mix(in srgb, var(--color-rose-400) 14%, transparent);
+}
+/* Vivo: a ação primária e a marca.
+   Chrome: contingência e turno aberto — registro, nunca estado do caixa.
+   Limite: o aviso de crédito do jogador. Mora dentro do cartão dele e nunca na
+   faixa do topo, senão dividiria o âmbar com o veredito de "revisar a janela". */
+.cv-ch-live {
+  --cv-accent: var(--cv-live);
+  --cv-accent-soft: var(--cv-live-soft);
+}
+.cv-ch-chrome {
+  --cv-accent: var(--color-violet-400);
+  --cv-accent-soft: color-mix(in srgb, var(--color-violet-400) 14%, transparent);
+}
+.cv-ch-limite {
+  --cv-accent: var(--color-amber-400);
+  --cv-accent-soft: color-mix(in srgb, var(--color-amber-400) 13%, transparent);
+}
+
+/* No claro os mesmos canais precisam de tons 500/600: um amber-400 sobre papel
+   osso não tem contraste para ser lido de longe, que é como este app é lido. */
+[data-cv-tema='claro'] .cv-ch-fecha {
+  --cv-accent: var(--color-emerald-600);
+  --cv-accent-soft: color-mix(in srgb, var(--color-emerald-500) 11%, transparent);
+}
+[data-cv-tema='claro'] .cv-ch-revisar {
+  --cv-accent: var(--color-amber-600);
+  --cv-accent-soft: color-mix(in srgb, var(--color-amber-500) 13%, transparent);
+}
+[data-cv-tema='claro'] .cv-ch-suspender {
+  --cv-accent: var(--color-rose-600);
+  --cv-accent-soft: color-mix(in srgb, var(--color-rose-500) 12%, transparent);
+}
+[data-cv-tema='claro'] .cv-ch-chrome {
+  --cv-accent: var(--color-violet-600);
+  --cv-accent-soft: color-mix(in srgb, var(--color-violet-500) 11%, transparent);
+}
+[data-cv-tema='claro'] .cv-ch-limite {
+  --cv-accent: var(--color-amber-600);
+  --cv-accent-soft: color-mix(in srgb, var(--color-amber-500) 12%, transparent);
+}
+
+/* ── Tinta ────────────────────────────────────────────────────────────────
+   Declaradas com `@utility` e não dentro de `@layer utilities`: só assim o
+   Tailwind v4 aceita variante em cima delas, e `hover:cv-text` precisa disso.
+   As de pseudo-elemento ficam no `@layer` abaixo, onde variante não é usada. */
+
+@utility cv-text {
+  color: var(--cv-ink);
+}
+@utility cv-text-soft {
+  color: var(--cv-ink-soft);
+}
+@utility cv-live-text {
+  color: var(--cv-live);
+}
+@utility cv-live-fill {
+  background-color: var(--cv-live-soft);
+}
+
+/* Fio de separação. Existe como classe porque `border-[var(...)]` repetido
+   duzentas vezes esconde o que a marcação está dizendo. */
+@utility cv-line {
+  border-color: var(--cv-hairline);
+}
+@utility cv-line-soft {
+  border-color: var(--cv-hairline-soft);
+}
+
+@utility cv-accent-text {
+  color: var(--cv-accent);
+}
+@utility cv-accent-bg {
+  background-color: var(--cv-accent);
+}
+@utility cv-accent-fill {
+  background-color: var(--cv-accent-soft);
+}
+@utility cv-accent-border {
+  border-color: var(--cv-accent);
+}
+@utility cv-accent-on {
+  color: var(--cv-on-accent);
+}
+
+/* A ação primária. Sempre no canal `cv-ch-live` — ciano —, exceto dentro do
+   veredito, onde o canal já é o do estado e o botão herda dele. */
+@utility cv-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  background-color: var(--cv-accent);
+  color: var(--cv-on-accent);
+  transition:
+    transform 150ms ease-out,
+    filter 150ms ease-out;
+}
+@utility cv-btn-quiet {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  color: var(--cv-ink);
+  background-color: var(--cv-panel-quiet);
+  border: 1px solid var(--cv-hairline);
+  transition:
+    transform 150ms ease-out,
+    background-color 150ms ease-out;
+}
+@utility cv-accent-ring {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--cv-accent) 45%, transparent),
+    0 0 46px -14px var(--cv-accent);
+}
+
+/* Rótulo gravado na chapa. */
+@utility cv-engraved {
+  text-shadow: 0 1px 0 var(--cv-engrave);
+}
+
+/* Régua dupla: separa o veredito do contexto sem pesar como borda. */
+@utility cv-rule {
+  border-top: 1px solid var(--cv-hairline);
+  box-shadow: 0 2px 0 -1px var(--cv-hairline-soft);
+}
+
+/* Número de instrumento: tabular, zero cortado, um fio mais aberto. */
+@utility cv-num {
+  font-variant-numeric: tabular-nums slashed-zero;
+  letter-spacing: -0.01em;
+}
+
+@layer utilities {
+  /* ── Superfícies ───────────────────────────────────────────────────── */
+
+  /* O salão. Três poças de luz: a lâmpada sobre a mesa, o reflexo frio da
+     porta, o feltro puxando verde no canto de baixo. */
+  .cv-room {
+    background-color: var(--cv-room);
+    background-image:
+      radial-gradient(115% 65% at 50% -12%, var(--cv-lamp) 0%, transparent 58%),
+      radial-gradient(80% 55% at 8% 4%, var(--cv-live-soft) 0%, transparent 62%),
+      radial-gradient(95% 70% at 105% 108%, var(--cv-felt) 0%, transparent 66%);
+    background-attachment: fixed;
+  }
+
+  /* Grão de filme. Uma textura só, em SVG, em cima de tudo e sem capturar
+     toque. É o que impede o fundo de parecer um degradê de gerador. */
+  .cv-grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: var(--cv-grain-opacity);
+    mix-blend-mode: var(--cv-grain-blend);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Painel usinado: filete de luz no topo, sombra funda embaixo. */
+  .cv-panel {
+    background-color: var(--cv-panel);
+    border: 1px solid var(--cv-hairline);
+    box-shadow:
+      inset 0 1px 0 var(--cv-highlight),
+      0 1px 1px var(--cv-shadow),
+      0 18px 40px -28px var(--cv-shadow-deep);
+    backdrop-filter: blur(10px) saturate(1.15);
+  }
+
+  .cv-panel-quiet {
+    background-color: var(--cv-panel-quiet);
+    border: 1px solid var(--cv-hairline-soft);
+  }
+
+  /* Marcas de registro nos quatro cantos. Oito camadas de fundo, nenhum
+     elemento extra no DOM. É o detalhe que faz o painel parecer fabricado. */
+  .cv-ticks {
+    background-image:
+      linear-gradient(var(--cv-tick), var(--cv-tick)),
+      linear-gradient(var(--cv-tick), var(--cv-tick)),
+      linear-gradient(var(--cv-tick), var(--cv-tick)),
+      linear-gradient(var(--cv-tick), var(--cv-tick)),
+      linear-gradient(var(--cv-tick), var(--cv-tick)),
+      linear-gradient(var(--cv-tick), var(--cv-tick)),
+      linear-gradient(var(--cv-tick), var(--cv-tick)),
+      linear-gradient(var(--cv-tick), var(--cv-tick));
+    background-repeat: no-repeat;
+    background-size:
+      9px 1px, 1px 9px,
+      9px 1px, 1px 9px,
+      9px 1px, 1px 9px,
+      9px 1px, 1px 9px;
+    background-position:
+      7px 7px, 7px 7px,
+      calc(100% - 7px) 7px, calc(100% - 7px) 7px,
+      7px calc(100% - 7px), 7px calc(100% - 7px),
+      calc(100% - 7px) calc(100% - 7px), calc(100% - 7px) calc(100% - 7px);
+  }
+
+  /* Canto cortado: o veredito é um comprovante, não um cartão. */
+  .cv-notch {
+    clip-path: polygon(
+      0 0,
+      calc(100% - 16px) 0,
+      100% 16px,
+      100% 100%,
+      16px 100%,
+      0 calc(100% - 16px)
+    );
+  }
+
+  /* A borda da ficha de poker: as marcas do canto, vistas de lado.
+     Herda currentColor, então quem pinta o texto pinta a régua. */
+  .cv-chip-rail {
+    background-image: repeating-linear-gradient(
+      180deg,
+      currentColor 0 9px,
+      transparent 9px 15px
+    );
+  }
+  .cv-chip-rail-x {
+    background-image: repeating-linear-gradient(
+      90deg,
+      currentColor 0 9px,
+      transparent 9px 15px
+    );
+  }
+
+  /* ── Movimento ─────────────────────────────────────────────────────────
+     Uma entrada orquestrada por tela, não micro-animação espalhada. */
+
+  .cv-rise {
+    animation: cv-rise 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .cv-d1 {
+    animation-delay: 40ms;
+  }
+  .cv-d2 {
+    animation-delay: 110ms;
+  }
+  .cv-d3 {
+    animation-delay: 180ms;
+  }
+  .cv-d4 {
+    animation-delay: 250ms;
+  }
+  .cv-d5 {
+    animation-delay: 320ms;
+  }
+
+  /* O veredito não desliza: ele é batido, como um carimbo. */
+  .cv-stamp {
+    animation: cv-stamp 520ms cubic-bezier(0.2, 1.5, 0.4, 1) both;
+  }
+
+  /* O ponto de "ao vivo": dois anéis saindo do centro. */
+  .cv-pulse::before,
+  .cv-pulse::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background-color: currentColor;
+    animation: cv-pulse 2.6s cubic-bezier(0.3, 0, 0.6, 1) infinite;
+  }
+  .cv-pulse::after {
+    animation-delay: 1.3s;
+  }
+
+  /* O fio que corre embaixo do número quando ele é novo. */
+  .cv-sweep {
+    transform-origin: left center;
+    animation: cv-sweep 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* Latão passando pela ação primária no hover. */
+  .cv-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .cv-shine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: linear-gradient(
+      105deg,
+      transparent 38%,
+      color-mix(in srgb, white 38%, transparent) 50%,
+      transparent 62%
+    );
+    background-size: 260% 100%;
+    background-position: -60% 0;
+    opacity: 0;
+    transition: opacity 160ms ease-out;
+  }
+  .cv-shine:hover::after {
+    opacity: 1;
+    animation: cv-shine 780ms ease-out;
+  }
+
+  /* A tela girada para o jogador: feltro de borda a borda, luz no centro. */
+  .cv-kiosk {
+    background-color: var(--cv-room);
+    background-image:
+      radial-gradient(75% 55% at 50% 38%, var(--cv-lamp) 0%, transparent 70%),
+      radial-gradient(120% 100% at 50% 120%, var(--cv-felt) 0%, transparent 70%);
+  }
+
+  @keyframes cv-rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes cv-stamp {
+    0% {
+      opacity: 0;
+      transform: scale(1.06);
+    }
+    55% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes cv-pulse {
+    0% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    70%,
+    100% {
+      opacity: 0;
+      transform: scale(2.6);
+    }
+  }
+
+  @keyframes cv-sweep {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  @keyframes cv-shine {
+    from {
+      background-position: -60% 0;
+    }
+    to {
+      background-position: 160% 0;
+    }
+  }
+
+  /* O app é operado de pé, sob pressão. Quem pediu menos movimento recebe
+     o layout inteiro, sem nenhum. */
+  @media (prefers-reduced-motion: reduce) {
+    .cv-rise,
+    .cv-stamp,
+    .cv-sweep,
+    .cv-pulse::before,
+    .cv-pulse::after,
+    .cv-shine:hover::after {
+      animation: none;
+    }
+    .cv-rise,
+    .cv-stamp {
+      opacity: 1;
+      transform: none;
+    }
+    .cv-sweep {
+      transform: scaleX(1);
+    }
+  }
+}

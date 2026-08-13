@@ -1,0 +1,137 @@
+{
+  "jogadores": [
+    {
+      "id": "j1",
+      "nome": "Rafa",
+      "whatsapp": "(11) 98812-4470",
+      "entrouAs": "19h10",
+      "limite": 3000,
+      "emMao": 1480,
+      "aguardando": 0,
+      "contingencias": 0
+    },
+    {
+      "id": "j2",
+      "nome": "Tiago Melo",
+      "whatsapp": "(11) 99640-2213",
+      "cpf": "412.908.336-70",
+      "entrouAs": "19h25",
+      "limite": 2000,
+      "emMao": 800,
+      "aguardando": 0,
+      "contingencias": 0
+    },
+    {
+      "id": "j3",
+      "nome": "Dedé",
+      "whatsapp": "(21) 98330-5561",
+      "entrouAs": "19h40",
+      "limite": 5000,
+      "emMao": 2500,
+      "aguardando": 300,
+      "contingencias": 1
+    },
+    {
+      "id": "j4",
+      "nome": "Bia",
+      "whatsapp": "(11) 97701-8834",
+      "entrouAs": "20h15",
+      "limite": 1500,
+      "emMao": 1400,
+      "aguardando": 0,
+      "contingencias": 0
+    },
+    {
+      "id": "j5",
+      "nome": "Nando",
+      "whatsapp": "(11) 98155-3092",
+      "entrouAs": "21h10",
+      "limite": 3000,
+      "emMao": 1200,
+      "aguardando": 0,
+      "contingencias": 0
+    },
+    {
+      "id": "j6",
+      "nome": "Léo Bastos",
+      "whatsapp": "(11) 97220-1185",
+      "entrouAs": "21h35",
+      "limite": 2500,
+      "emMao": 0,
+      "aguardando": 500,
+      "contingencias": 0
+    }
+  ],
+  "encerrados": [
+    {
+      "id": "j6",
+      "nome": "Paulo Vidal",
+      "whatsapp": "(11) 99002-7788",
+      "entrouAs": "19h05",
+      "saiuAs": "20h50",
+      "limite": 2000,
+      "resultado": 940
+    }
+  ],
+  "lugares": [
+    {
+      "lugar": 1,
+      "participacaoId": "j1",
+      "nome": "Rafa",
+      "entrouAs": "19h10",
+      "emMao": 1480,
+      "limite": 3000,
+      "aguardando": 0,
+      "contingencias": 0
+    },
+    {
+      "lugar": 3,
+      "participacaoId": "j2",
+      "nome": "Tiago Melo",
+      "entrouAs": "19h25",
+      "emMao": 800,
+      "limite": 2000,
+      "aguardando": 0,
+      "contingencias": 0
+    },
+    {
+      "lugar": 4,
+      "participacaoId": "j3",
+      "nome": "Dedé",
+      "entrouAs": "19h40",
+      "emMao": 2500,
+      "limite": 5000,
+      "aguardando": 300,
+      "contingencias": 1
+    },
+    {
+      "lugar": 7,
+      "participacaoId": "j4",
+      "nome": "Bia",
+      "entrouAs": "20h15",
+      "emMao": 1400,
+      "limite": 1500,
+      "aguardando": 0,
+      "contingencias": 0
+    },
+    {
+      "lugar": 9,
+      "participacaoId": "j5",
+      "nome": "Nando",
+      "entrouAs": "21h10",
+      "emMao": 1200,
+      "limite": 3000,
+      "aguardando": 0,
+      "contingencias": 0
+    }
+  ],
+  "emPe": [
+    {
+      "participacaoId": "j6",
+      "nome": "Léo Bastos"
+    }
+  ],
+  "dealer": "João Ribeiro",
+  "turno": 2,
+  "fichasEmJogo": 7380
+}
