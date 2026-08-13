@@ -1,0 +1,55 @@
+{
+  "sessao": {
+    "id": "s-2026-08-11",
+    "clube": "Clube Paris",
+    "abertaEm": "19h00",
+    "horaAtual": "21h47",
+    "decorrido": "2h47",
+    "caixaInicial": 5000,
+    "situacao": "aberta"
+  },
+  "resumo": {
+    "retiradas": 12400,
+    "devolucoes": 5960,
+    "rakeRecolhido": 960,
+    "diferenca": 320,
+    "rakePendente": true,
+    "ultimoRakeEm": "21h40",
+    "checkpoints": 4
+  },
+  "turnos": [
+    {
+      "id": "t1",
+      "numero": 1,
+      "dealer": "João Ribeiro",
+      "inicio": "19h00",
+      "fim": "20h10",
+      "rakeDoTurno": 180,
+      "aberto": false
+    },
+    {
+      "id": "t2",
+      "numero": 2,
+      "dealer": "Marcos Lima",
+      "inicio": "20h10",
+      "fim": "21h05",
+      "rakeDoTurno": 220,
+      "aberto": false
+    },
+    {
+      "id": "t3",
+      "numero": 3,
+      "dealer": "João Ribeiro",
+      "inicio": "21h05",
+      "rakeDoTurno": 560,
+      "aberto": true
+    }
+  ],
+  "jogadoresNaMesa": [
+    { "id": "j1", "nome": "Rafa" },
+    { "id": "j2", "nome": "Tiago Melo" },
+    { "id": "j3", "nome": "Dedé" },
+    { "id": "j4", "nome": "Bia" },
+    { "id": "j5", "nome": "Nando" }
+  ]
+}

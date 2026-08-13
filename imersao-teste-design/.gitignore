@@ -1,0 +1,29 @@
+# OS files
+.DS_Store
+**/.DS_Store
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Rascunho do subagent-driven-development: ledger, briefs, pacotes de revisao.
+.superpowers/
+
+# Pacote exportado, empacotado. Artefato gerado — o conteudo vive em product-plan/.
+product-plan.zip

@@ -1,0 +1,266 @@
+{
+  "vereditoAtual": {
+    "estado": "neutro",
+    "diferenca": 320,
+    "desdeHora": "21h40",
+    "horaAtual": "21h47"
+  },
+  "ultimoCheckpoint": {
+    "id": "c4",
+    "numero": 4,
+    "hora": "21h40",
+    "diferenca": 0,
+    "veredito": "fechado",
+    "janelaInicio": "21h08",
+    "janelaFim": "21h40",
+    "turno": 3,
+    "dealer": "João Ribeiro",
+    "rakeAcumulado": 960
+  },
+  "checkpoints": [
+    {
+      "id": "c1",
+      "numero": 1,
+      "hora": "19h35",
+      "diferenca": 0,
+      "veredito": "fechado",
+      "janelaInicio": "19h00",
+      "janelaFim": "19h35",
+      "turno": 1,
+      "dealer": "João Ribeiro",
+      "rakeAcumulado": 180
+    },
+    {
+      "id": "c2",
+      "numero": 2,
+      "hora": "20h15",
+      "diferenca": 60,
+      "veredito": "registrar",
+      "janelaInicio": "19h35",
+      "janelaFim": "20h15",
+      "turno": 2,
+      "dealer": "Marcos Lima",
+      "rakeAcumulado": 400
+    },
+    {
+      "id": "c3",
+      "numero": 3,
+      "hora": "21h08",
+      "diferenca": 480,
+      "veredito": "revisar",
+      "janelaInicio": "20h15",
+      "janelaFim": "21h08",
+      "turno": 2,
+      "dealer": "Marcos Lima",
+      "rakeAcumulado": 660
+    },
+    {
+      "id": "c4",
+      "numero": 4,
+      "hora": "21h40",
+      "diferenca": 0,
+      "veredito": "fechado",
+      "janelaInicio": "21h08",
+      "janelaFim": "21h40",
+      "turno": 3,
+      "dealer": "João Ribeiro",
+      "rakeAcumulado": 960
+    }
+  ],
+  "relatorio": {
+    "clube": "Clube Paris",
+    "abertaEm": "19h00",
+    "encerradaEm": "22h15",
+    "duracao": "3h15",
+    "totais": {
+      "caixaInicial": 20000,
+      "retiradas": 12400,
+      "devolucoes": 13340,
+      "rake": 1200,
+      "caixaEsperado": 22140,
+      "caixaContado": 21600,
+      "divergencia": 540
+    },
+    "vereditoFinal": "suspender",
+    "checkpoints": [
+      {
+        "id": "c1",
+        "numero": 1,
+        "hora": "19h35",
+        "diferenca": 0,
+        "veredito": "fechado",
+        "janelaInicio": "19h00",
+        "janelaFim": "19h35",
+        "turno": 1,
+        "dealer": "João Ribeiro",
+        "rakeAcumulado": 180
+      },
+      {
+        "id": "c2",
+        "numero": 2,
+        "hora": "20h15",
+        "diferenca": 60,
+        "veredito": "registrar",
+        "janelaInicio": "19h35",
+        "janelaFim": "20h15",
+        "turno": 2,
+        "dealer": "Marcos Lima",
+        "turnosNaJanela": [
+          { "numero": 1, "dealer": "João Ribeiro" },
+          { "numero": 2, "dealer": "Marcos Lima" }
+        ],
+        "rakeAcumulado": 400
+      },
+      {
+        "id": "c3",
+        "numero": 3,
+        "hora": "21h08",
+        "diferenca": 480,
+        "veredito": "revisar",
+        "janelaInicio": "20h15",
+        "janelaFim": "21h08",
+        "turno": 3,
+        "dealer": "João Ribeiro",
+        "turnosNaJanela": [
+          { "numero": 2, "dealer": "Marcos Lima" },
+          { "numero": 3, "dealer": "João Ribeiro" }
+        ],
+        "rakeAcumulado": 660
+      },
+      {
+        "id": "c4",
+        "numero": 4,
+        "hora": "21h40",
+        "diferenca": 0,
+        "veredito": "fechado",
+        "janelaInicio": "21h08",
+        "janelaFim": "21h40",
+        "turno": 3,
+        "dealer": "João Ribeiro",
+        "rakeAcumulado": 960
+      },
+      {
+        "id": "c5",
+        "numero": 5,
+        "hora": "22h08",
+        "diferenca": 0,
+        "veredito": "fechado",
+        "janelaInicio": "21h40",
+        "janelaFim": "22h08",
+        "turno": 3,
+        "dealer": "João Ribeiro",
+        "rakeAcumulado": 1200
+      },
+      {
+        "id": "c6",
+        "numero": 6,
+        "hora": "22h15",
+        "diferenca": 0,
+        "veredito": "fechado",
+        "janelaInicio": "22h08",
+        "janelaFim": "22h15",
+        "turno": 3,
+        "dealer": "João Ribeiro",
+        "rakeAcumulado": 1200
+      }
+    ],
+    "turnos": [
+      {
+        "id": "t1",
+        "numero": 1,
+        "dealer": "João Ribeiro",
+        "inicio": "19h00",
+        "fim": "20h10",
+        "rake": 180
+      },
+      {
+        "id": "t2",
+        "numero": 2,
+        "dealer": "Marcos Lima",
+        "inicio": "20h10",
+        "fim": "21h05",
+        "rake": 220
+      },
+      {
+        "id": "t3",
+        "numero": 3,
+        "dealer": "João Ribeiro",
+        "inicio": "21h05",
+        "fim": "22h15",
+        "rake": 800
+      }
+    ],
+    "jogadores": [
+      {
+        "id": "p1",
+        "nome": "Paulo Vidal",
+        "entrouAs": "19h05",
+        "saiuAs": "20h50",
+        "retirado": 5020,
+        "devolvido": 5960,
+        "resultado": 940,
+        "contingencias": 1
+      },
+      {
+        "id": "p2",
+        "nome": "Rafa",
+        "entrouAs": "19h10",
+        "saiuAs": "21h50",
+        "retirado": 1480,
+        "devolvido": 1480,
+        "resultado": 0,
+        "contingencias": 0
+      },
+      {
+        "id": "p3",
+        "nome": "Tiago Melo",
+        "entrouAs": "19h25",
+        "saiuAs": "21h54",
+        "retirado": 800,
+        "devolvido": 800,
+        "resultado": 0,
+        "contingencias": 0
+      },
+      {
+        "id": "p4",
+        "nome": "Dedé",
+        "entrouAs": "19h40",
+        "saiuAs": "21h58",
+        "retirado": 2500,
+        "devolvido": 2500,
+        "resultado": 0,
+        "contingencias": 0
+      },
+      {
+        "id": "p5",
+        "nome": "Bia",
+        "entrouAs": "20h15",
+        "saiuAs": "22h02",
+        "retirado": 1400,
+        "devolvido": 1400,
+        "resultado": 0,
+        "contingencias": 0
+      },
+      {
+        "id": "p6",
+        "nome": "Nando",
+        "entrouAs": "21h10",
+        "saiuAs": "22h06",
+        "retirado": 1200,
+        "devolvido": 1200,
+        "resultado": 0,
+        "contingencias": 0
+      }
+    ],
+    "registros": [
+      {
+        "id": "m14",
+        "hora": "20h31",
+        "tipo": "contingencia",
+        "jogador": "Paulo Vidal",
+        "valor": 1520,
+        "motivo": "Jogador atendeu o telefone e virou de costas."
+      }
+    ]
+  }
+}
