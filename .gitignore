@@ -21,4 +21,4 @@ node_modules/
 # é público, então quem publica um pitch é você, não o build.
 # Para publicar, tire a linha correspondente.
 .apresentacao/
-docs/apresentacao-junior.html
+docs/*apresentacao*.html

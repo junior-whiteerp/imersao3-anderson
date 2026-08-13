@@ -1,0 +1,6 @@
+# SPA: toda rota desconhecida devolve o index, e quem decide o que mostrar e o
+# react-router dentro do navegador. Sem esta linha, abrir direto
+# /sections/jogadores-e-mesa/screen-designs/... da 404.
+# Formato do Cloudflare Pages e do Netlify. Ignorado pelo `vite preview`, que
+# ja faz esse fallback sozinho.
+/*    /index.html   200

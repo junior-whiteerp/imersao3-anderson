@@ -1,7 +1,8 @@
-# Subir o StackTrack — GitHub, Supabase e Railway
+# Subir o StackTrack — GitHub, Supabase e Cloudflare Pages
 
-> Estado em 2026-08-12. O repositório está publicado; os dois passos de
-> infraestrutura que faltam dependem de conta e cartão, e por isso são seus.
+> Estado em 2026-08-13. O repositório está publicado e o código está pronto
+> para servir. O que falta depende de login em painel, e por isso é seu.
+> A Railway foi tentada e abandonada — o porquê está no passo 2.
 
 ---
 
@@ -11,7 +12,8 @@
 |---|---|
 | **GitHub** | `git@github.com:junior-whiteerp/imersao3-anderson.git`, branch `main`. Um repositório só, com os três históricos dentro |
 | **Build dos dois apps** | `npm run build` passa limpo nos dois |
-| **Servir em produção** | `railway.json` em cada app, com `vite preview` na porta que a Railway injeta. Testado local: raiz 200, rota interna 200 (fallback de SPA), domínio desconhecido 200 |
+| **Servir em produção** | `_redirects` em cada app, para a rota interna não dar 404 no CDN. Conferido: o Vite copia os dois para o `dist/` |
+| **Sobra da Railway** | `railway.json` continua nos dois apps, com `vite preview` na porta injetada. Inofensivo — o Cloudflare Pages ignora. Fica para o dia em que existir backend |
 
 ### Como o repositório ficou montado
 
@@ -100,60 +102,73 @@ insert into operador (id, clube_id, nome) values
 
 ---
 
-## Passo 2 — Railway  🔴 depende de você
+## Passo 2 — Cloudflare Pages  🟡 cinco cliques seus, por app
 
-**O trial da conta expirou.** `railway init` responde
-*"Your trial has expired. Please select a plan to continue using Railway."*
-Sem plano escolhido não dá para criar projeto. O plano Hobby resolve.
+### Por que aqui e não na Railway
 
-Depois de escolher o plano:
+Os dois apps são **estáticos**: bundle que o navegador baixa, sem servidor
+próprio. O Caixa Vivo fala direto com o Supabase a partir do navegador. A
+Railway mantém um processo Node de pé 24 horas para entregar arquivo parado —
+custa dinheiro e não entrega nada a mais. CDN é a forma certa, e é de graça.
 
-```bash
-cd /Users/juniorcesar/imersao3
-railway init -n imersao3-anderson -w 2d92980d-d907-432c-9e99-524c4b788bcd
+A Railway volta a fazer sentido no dia em que o Caixa Vivo ganhar backend
+próprio. Hoje ele não tem.
+
+> As duas contas Railway travaram em cobrança de qualquer forma: a
+> `junior-whiteerp` com *"Your trial has expired"*, e a
+> `andersonszczepanski90@gmail.com` com *"Your workspace has been restricted.
+> Please attach a payment method"*. Ficou criado, vazio, o projeto
+> `imersao3-anderson` (`e9095e96-57e2-4100-8f88-b026d83eb012`) com um serviço
+> `design-os`. Pode apagar.
+
+### O que fazer, em cada um dos dois apps
+
+Painel da Cloudflare → **Workers & Pages → Create → Pages → Connect to Git** →
+repositório `junior-whiteerp/imersao3-anderson`. Depois:
+
+| Campo | Caixa Vivo | Design OS |
+|---|---|---|
+| Project name | `caixa-vivo` | `design-os` |
+| Root directory | `caixa-vivo` | `imersao-teste-design` |
+| Framework preset | Vite | Vite |
+| Build command | `npm run build` | `npm run build` |
+| Build output directory | `dist` | `dist` |
+
+**O Root directory é o campo que decide se funciona.** Sem ele a build roda na
+raiz do repositório, que não tem `package.json`.
+
+### As variáveis do Caixa Vivo
+
+Só ele precisa. Em **Settings → Variables and Secrets**, para *Production* e
+*Preview*:
+
+```
+VITE_SUPABASE_URL       = <Project URL do passo 1>
+VITE_SUPABASE_ANON_KEY  = <chave anon do passo 1>
 ```
 
-### O serviço do Caixa Vivo
+São variáveis de **build**, não de execução: o Vite grava o valor dentro do
+bundle. Trocar a chave exige **rebuild**, não restart — na Cloudflare,
+*Deployments → Retry deployment*.
 
-```bash
-railway add -s caixa-vivo \
-  -v "VITE_SUPABASE_URL=<Project URL do passo 1>" \
-  -v "VITE_SUPABASE_ANON_KEY=<chave anon do passo 1>"
-
-railway up caixa-vivo --path-as-root -s caixa-vivo
-```
-
-As duas variáveis são de **build**, não só de execução: o Vite grava o valor
-dentro do bundle. Trocar a chave exige **rebuild**, não restart.
-
-Se faltar qualquer uma das duas, o app quebra no boot com uma mensagem clara —
+Se faltar qualquer uma das duas, o app quebra no boot com mensagem clara —
 está escrito assim de propósito em `src/dados/supabase.ts`. O Caixa Vivo não
 tem modo de demonstração, e não pode ter: um app que cai para dados de exemplo
 quando o banco some fica com cara de funcionando enquanto o caixa da noite não
 está sendo registrado em lugar nenhum.
 
-### O serviço do Design OS
+O Design OS não precisa de variável nenhuma — é protótipo, roda com dado de
+amostra.
 
-Não precisa de variável nenhuma — é protótipo, roda com dado de amostra.
+### O que já está resolvido no código
 
-```bash
-railway add -s design-os
-railway up imersao-teste-design --path-as-root -s design-os
-```
+`caixa-vivo/public/_redirects` e `imersao-teste-design/public/_redirects`
+carregam `/*  /index.html  200`. Sem isso, recarregar a página em `/mesa` ou
+abrir direto uma rota de screen design daria **404**: o servidor procuraria um
+arquivo que não existe, porque quem resolve a rota é o react-router, dentro do
+navegador. O Vite copia os dois para o `dist/` na build — conferido.
 
-### Gerar as URLs públicas
-
-Em cada serviço: **Settings → Networking → Generate Domain**.
-
-### Opcional: deploy automático a cada push
-
-O `railway up` acima envia o diretório da sua máquina — não liga no GitHub.
-Para a Railway construir sozinha a cada push:
-
-**Settings → Source → Connect Repo** → `junior-whiteerp/imersao3-anderson`, e
-em **Root Directory** ponha `caixa-vivo` num serviço e `imersao-teste-design`
-no outro. Sem o Root Directory a build falha: a raiz do repositório não tem
-`package.json`.
+Depois de conectado, cada push na `main` dispara build e deploy sozinho.
 
 ---
 
@@ -161,8 +176,8 @@ no outro. Sem o Root Directory a build falha: a raiz do repositório não tem
 
 | Sintoma | Causa provável |
 |---|---|
-| `Nixpacks build failed` sem package.json | Root Directory não configurado no serviço conectado ao GitHub |
-| App abre e quebra com "Falta credencial do banco" | `VITE_SUPABASE_URL` ou `VITE_SUPABASE_ANON_KEY` ausente **na build** |
-| Página branca, console com 403 | `allowedHosts` — já está liberado nos dois `vite.config.ts`, então confira se a build pegou o commit certo |
-| Login passa, telas vazias, sem erro | X12: faltam os grants. Ver o aviso do passo 1 |
-| Deploy sobe e a URL dá 502 | `$PORT` não chegou no start. O `--strictPort` faz falhar alto em vez de silenciar |
+| Build falha dizendo que não achou `package.json` | **Root directory** vazio. É o erro número um |
+| App abre e quebra com "Falta credencial do banco" | `VITE_SUPABASE_URL` ou `VITE_SUPABASE_ANON_KEY` ausente **na build**. Preencher e refazer o deploy — variável nova não entra em bundle antigo |
+| A home abre, mas recarregar numa rota interna dá 404 | O `_redirects` não chegou no `dist/`. Confira se a build pegou o commit certo |
+| Login passa, telas vazias, sem erro | **X12**: faltam os grants no banco. Ver o aviso do passo 1 |
+| Login recusa com "Database error querying schema" | Campos de token do GoTrue com `NULL` em vez de string vazia. Só acontece se o usuário for criado por SQL à mão em vez do painel |
