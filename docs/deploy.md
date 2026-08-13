@@ -13,6 +13,7 @@
 | **Caixa Vivo** | Um processo Node serve a API **e** a tela. Precisa de Postgres |
 | **Design OS** | Bundle estático puro. Não precisa de nada |
 | **Testes** | 123, todos contra um Postgres de verdade |
+| **Imagem** | `Dockerfile` conferido: build, migrations, bootstrap e a noite inteira rodando dentro do contêiner |
 
 O Caixa Vivo deixou de ser publicável em CDN: **agora existe servidor**. O
 Design OS continua estático.
@@ -43,6 +44,30 @@ Abra `http://localhost:3400`.
 
 Precisa de duas coisas: um **Postgres** e um lugar que rode **Node**.
 
+### Em contêiner — funciona em qualquer lugar
+
+O app tem `Dockerfile`. Build em duas etapas: a primeira compila, a segunda só
+carrega o que roda, sem `tsc`, sem Vite, sem esbuild. Roda como usuário `node`,
+não como root. **Imagem final: 325 MB.**
+
+```bash
+cd caixa-vivo
+docker build -t caixa-vivo .
+docker run -p 3402:3402 -e DATABASE_URL=<url do postgres> caixa-vivo
+```
+
+O contêiner aplica as migrations pendentes antes de escutar a porta. Depois,
+o bootstrap roda por dentro dele:
+
+```bash
+docker exec <conteiner> npm run banco:semear:prod
+docker exec -e SENHA_OPERADOR='<senha>' <conteiner> \
+  npm run banco:operador:prod -- --email anderson@clubeparis.com --nome "Anderson"
+```
+
+> Os scripts `:prod` existem porque `tsx` é dependência de desenvolvimento e
+> não viaja na imagem. Em produção o que roda é o bundle que a build gerou.
+
 ### Na Railway (servidor e banco no mesmo lugar)
 
 ```bash
@@ -63,21 +88,16 @@ Em **Settings → Source → Connect Repo**, aponte para
 `junior-whiteerp/imersao3-anderson` com **Root Directory** = `caixa-vivo`.
 Sem o Root Directory a build falha: a raiz do repositório não tem `package.json`.
 
-O `railway.json` do `caixa-vivo/` já manda:
-
-```
-build:  npm run build       (tela + servidor)
-start:  npm run migrar-e-subir
-```
-
-`migrar-e-subir` aplica as migrations pendentes e então sobe o servidor. É
-seguro repetir: cada migration roda uma vez só, anotada na tabela `migracao`.
+O `railway.json` manda construir pelo **Dockerfile**, não pela detecção
+automática: o que foi testado aqui é a imagem, e é ela que deve subir lá.
+O `CMD` aplica as migrations pendentes e então sobe o servidor — seguro
+repetir, cada migration roda uma vez só, anotada na tabela `migracao`.
 
 Depois do primeiro deploy, crie o clube e a conta do operador:
 
 ```bash
-railway run --service caixa-vivo npm run banco:semear
-railway run --service caixa-vivo npm run banco:operador -- \
+railway run --service caixa-vivo npm run banco:semear:prod
+railway run --service caixa-vivo npm run banco:operador:prod -- \
   --email anderson@clubeparis.com --nome "Anderson"
 ```
 
@@ -90,9 +110,9 @@ O app é um processo Node comum. Precisa de:
 - `DATABASE_URL` apontando para um Postgres 15+
 - `PORT` (o provedor injeta)
 - `NODE_ENV=production`
-- `npm run build` no build, `npm run migrar-e-subir` no start
+- a imagem do `Dockerfile`, ou `npm run build` + `npm run migrar-e-subir`
 
-Serve para Render, Fly, uma VPS com systemd, ou Docker. O Postgres pode ser
+Serve para Render, Fly, uma VPS com systemd, ou Docker puro. O Postgres pode ser
 Neon, Railway, RDS ou um container seu — as migrations são SQL padrão e não
 dependem de extensão além de `pgcrypto`.
 
