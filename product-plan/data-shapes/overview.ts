@@ -214,10 +214,10 @@ export interface MesaData {
  * girada — criterio A26. Quem entrou e ainda nao validou nada aparece em
  * `emPe`, fora do anel de lugares.
  *
- * ATENCAO: `lugar` nao pode ser o indice do array nem a ordem de chegada. Se
- * for, dois jogadores trocam de lugar sozinhos quando um deles fecha a conta.
- * No produto, `lugar` e campo proprio da Participacao, gravado no momento da
- * primeira confirmacao.
+ * `lugar` e campo proprio da Participacao, escolhido pelo operador quando ele
+ * senta alguem — nao o indice do array nem a ordem de chegada. Se fosse
+ * derivado, dois jogadores trocariam de lugar sozinhos quando um deles
+ * fechasse a conta.
  */
 export interface LugarOcupado {
   /** Numero do lugar, de 1 a 10. */
@@ -230,6 +230,13 @@ export interface LugarOcupado {
   /** Retirada esperando o jogador confirmar. O lugar fica marcado ate sair. */
   aguardando: number
   contingencias: number
+  /**
+   * Ja confirmou a primeira ficha na tela girada?
+   *
+   * `false` = lugar RESERVADO: a cadeira tem dono, mas ele ainda nao reconheceu
+   * ficha nenhuma. E a leitura da N2 que a F13 existe para dar (criterio A26).
+   */
+  validou: boolean
 }
 
 export interface MesaAoVivoData {

@@ -82,7 +82,8 @@
       "emMao": 1480,
       "limite": 3000,
       "aguardando": 0,
-      "contingencias": 0
+      "contingencias": 0,
+      "validou": true
     },
     {
       "lugar": 3,
@@ -92,7 +93,8 @@
       "emMao": 800,
       "limite": 2000,
       "aguardando": 0,
-      "contingencias": 0
+      "contingencias": 0,
+      "validou": true
     },
     {
       "lugar": 4,
@@ -102,17 +104,19 @@
       "emMao": 2500,
       "limite": 5000,
       "aguardando": 300,
-      "contingencias": 1
+      "contingencias": 1,
+      "validou": true
     },
     {
       "lugar": 7,
       "participacaoId": "j4",
       "nome": "Bia",
       "entrouAs": "20h15",
-      "emMao": 1400,
+      "emMao": 0,
       "limite": 1500,
       "aguardando": 0,
-      "contingencias": 0
+      "contingencias": 0,
+      "validou": false
     },
     {
       "lugar": 9,
@@ -122,7 +126,8 @@
       "emMao": 1200,
       "limite": 3000,
       "aguardando": 0,
-      "contingencias": 0
+      "contingencias": 0,
+      "validou": true
     }
   ],
   "emPe": [
@@ -133,5 +138,5 @@
   ],
   "dealer": "João Ribeiro",
   "turno": 2,
-  "fichasEmJogo": 7380
+  "fichasEmJogo": 5980
 }

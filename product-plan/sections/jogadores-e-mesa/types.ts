@@ -50,6 +50,13 @@ export interface LugarOcupado {
   /** Retirada esperando o jogador confirmar. O lugar fica marcado ate sair. */
   aguardando: number
   contingencias: number
+  /**
+   * Ja confirmou a primeira ficha na tela girada?
+   *
+   * `false` = lugar RESERVADO: a cadeira tem dono, mas ele ainda nao reconheceu
+   * ficha nenhuma. E a leitura da N2 que a F13 existe para dar (criterio A26).
+   */
+  validou: boolean
 }
 
 export interface MesaAoVivoData {
