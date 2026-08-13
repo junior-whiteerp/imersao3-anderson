@@ -1,6 +1,6 @@
 ---
 owner: Anderson
-version: v1.11
+version: v1.12
 updated: 2026-08-12
 status: pendente de aprovação — v1.6 é a última aprovada
 tipo: prd
@@ -27,8 +27,7 @@ fonte: Anderson Playbook — BRIEF-Sessao-Poker, 7 SOPs, ARV-Limites-de-Autorida
 > do checkpoint (seção 7). Ela segue marcada em 🔴 na seção — é a conta que
 > decide se o caixa fecha, e se estiver errada muda o produto inteiro.
 >
-> Continua aberto também o item 4 da D4: o número do lugar na mesa precisa
-> virar campo próprio da Participação. Esse não é decisão, é trabalho.
+> O item 4 da D4 — o número do lugar na mesa — foi fechado em 2026-08-12.
 >
 > 🔒 **A partir da v1.8 existe portão.** Nenhuma mudança de regra, escopo, dado
 > ou tela pode ser dada por encerrada sem passar por este documento — a rotina
@@ -590,8 +589,9 @@ Escritos como coisas que dá para observar acontecendo.
 | A23 | Uma diferença acima de R$ 500 depois do checkpoint faz o painel recomendar suspender novas retiradas, **sem bloquear** a operação |
 | **A24** | O relatório de uma noite com duas janelas em falta abre mostrando a **soma das duas**, e não o resultado da conferência final — mesmo quando ela fechou em zero |
 | **A25** | O painel da noite mostra, sem nenhum toque, o veredito do último checkpoint, em que momento cada falta apareceu e qual dealer estava no turno |
-| **A26** | Na mesa ao vivo, o jogador que entrou na sessão e ainda **não confirmou nenhuma ficha** aparece "de pé", fora dos dez lugares. Ele passa a ocupar um lugar no momento em que confirma a primeira retirada na tela girada |
+| **A26** | Na mesa ao vivo, quem entrou na sessão e ainda **não tem lugar** aparece "de pé", fora dos dez lugares. Quem tem lugar e ainda **não confirmou nenhuma ficha** aparece no lugar dele, **reservado** — sem valor em fichas, e a cadeira não aceita outra pessoa. O lugar vira ocupado no momento em que ele confirma a primeira retirada na tela girada |
 | **A27** | Não existe nenhuma credencial no código que o navegador baixa, e não existe caminho de entrada sem o servidor aceitar. Quando ele recusa, a tela mostra **a mensagem dele**, sem tradução |
+| **A28** | O lugar de um jogador **não muda** quando outro fecha a conta. A cadeira liberada volta a ficar livre, e a participação encerrada guarda o número que teve |
 
 ---
 
@@ -599,7 +599,7 @@ Escritos como coisas que dá para observar acontecendo.
 
 O Caixa Vivo está pronto quando:
 
-- [ ] Os 27 critérios de aceitação passam.
+- [ ] Os 28 critérios de aceitação passam.
 - [ ] Uma sessão inteira foi simulada do começo ao fim, com pelo menos
       3 jogadores, 2 turnos de dealer e 4 lançamentos de rake.
 - [ ] Um furo foi criado de propósito na simulação e o app apontou a
@@ -673,12 +673,12 @@ feitos, o desacordo continua vivo mesmo com a decisão tomada.
 | 1 | A mesa não existia na spec da seção nem na do shell — a navegação do shell listava seis abas | `product/sections/jogadores-e-mesa/spec.md`, `product/shell/spec.md` | ✅ feito em 2026-08-12 |
 | 2 | O componente saiu no pacote **sem dado de amostra**: não havia array `lugares`, então ele não desenhava | `product/sections/jogadores-e-mesa/data.json` e o `sample-data.json` exportado | ✅ feito em 2026-08-12 |
 | 3 | O tipo `LugarOcupado` era prometido nos contratos e não estava no `types.ts` da seção nem no `overview.ts` | `product-plan/data-shapes/`, `types.ts` da seção | ✅ feito em 2026-08-12 |
-| 4 | **Não existia origem para o número do lugar.** No protótipo ele era derivado da ordem de confirmação (`src/simulacao/vistas.ts`), arquivo que fica fora do pacote — e assim dois jogadores trocavam de lugar sozinhos quando um fechava a conta | `product-plan/regras/modelo.ts`, `caixa-vivo/supabase/migrations/` | 🟡 **em andamento** — a regra e o banco estão prontos; falta a camada visual. Ver abaixo |
+| 4 | **Não existia origem para o número do lugar.** No protótipo ele era derivado da ordem de confirmação (`src/simulacao/vistas.ts`), arquivo que fica fora do pacote — e assim dois jogadores trocavam de lugar sozinhos quando um fechava a conta | `product-plan/regras/modelo.ts`, `caixa-vivo/supabase/migrations/` | ✅ **feito em 2026-08-12** — regra, banco e a camada visual estão prontos. Ver abaixo |
 
 #### Onde o item 4 está, em 2026-08-12
 
 Plano em `docs/superpowers/plans/2026-08-12-campo-lugar-na-mesa.md`, oito
-tarefas. Quatro fecharam, com revisão independente em cada uma.
+tarefas. Sete fecharam, com revisão independente em cada uma.
 
 | Feito | O que ficou de pé |
 |---|---|
@@ -686,11 +686,15 @@ tarefas. Quatro fecharam, com revisão independente em cada uma.
 | A ação `sentar` aceita `lugar`, com seis guardas | Quem está de pé ganha cadeira **sem virar participação nova** — é o caminho de quem entrou pela aba Mesa |
 | Coluna, `check (1..10)` e **índice parcial** no Postgres | Um jogador por cadeira entre contas **abertas**. Encerrar libera a cadeira e a linha encerrada guarda o número (N13) |
 | As três cópias de `modelo.ts` e `reducer.ts` idênticas de novo | A regra de cópia do plano da fatia vertical, restaurada e provada por hash |
+| `MesaVisual.tsx` desenha a cadeira **reservada** — tracejada, sem valor em fichas — nas três cópias | O estado que só existia no plano agora existe na tela **Ao vivo**, conferido com interação real no navegador |
+| O tipo `LugarOcupado` ganhou o campo `validou: boolean`, e os comentários dos três contratos pararam de descrever a semântica antiga | Quem implementar pelo contrato já lê a regra certa: **`emPe` é sem cadeira**, não "sem ficha validada" |
 
-**Falta a camada visual**, e por isso o critério **A26 ainda não foi emendado**:
-o estado *reservado* — cadeira com dono que ainda não confirmou ficha — está
-desenhado no plano mas **não existe em tela**. Enquanto não existir, o A26
-segue valendo como está escrito na seção 15.
+✅ **A D4 está fechada inteira.** Os quatro itens que a ratificação obrigava
+foram feitos: a mesa entrou nas specs, ganhou dado de amostra, o contrato
+ficou completo, e o lugar ganhou origem própria — regra, banco e tela. O
+critério **A26** foi emendado (seção 15) para descrever o estado reservado
+que a mesa agora desenha, e nasceu o **A28**, que prova que ninguém anda de
+cadeira quando outro fecha a conta.
 
 Suíte do `caixa-vivo` inteira verde: 19 arquivos, 83 testes, 0 falhas.
 
@@ -855,6 +859,7 @@ carrega. Quem clonar amanhã não recebe o que está funcionando aqui.
 
 | Versão | Data | O que mudou |
 |---|---|---|
+| **v1.12** | 2026-08-12 | **A D4 fecha inteira.** O critério **A26** é emendado: "de pé" passa a querer dizer **sem lugar**, e quem tem lugar mas ainda não confirmou ficha aparece **reservado** — cadeira tracejada, sem valor em fichas, que não aceita outra pessoa. Nasce o **A28**: o lugar de um jogador não muda quando outro fecha a conta, a cadeira liberada volta a ficar livre, e a participação encerrada guarda o número que teve. Os critérios de aceitação passam de 27 para **28**. Com a camada visual e o contrato prontos, os quatro itens que a ratificação da D4 (v1.8) obrigava estão feitos — regra, banco e tela. ⚠️ **Pendente de aprovação** |
 | **v1.11** | 2026-08-12 | **A Mesa ao vivo vira uma mesa de verdade.** Decisão do dono do processo, a partir de uma foto de referência: o desenho de cima, abstrato, dá lugar a um salão — carpete de pelo cortado, trilho de mogno envernizado com o brilho varrendo a elipse, feltro de argila acolchoado, cadeiras de couro giradas para o centro e porta-fichas recuados no trilho. Tudo em CSS, sem imagem. A cadeira de quem está sentado ganha um filete quente na costura: de longe, o anel de cadeiras conta quantos lugares foram tomados antes de o operador ler um nome. ⚠️ **O limite que a decisão respeitou:** a foto de referência tem feltro laranja saturado, e reproduzi-lo gastaria o canal âmbar do aviso de limite — o realismo veio de **luz e textura, não de pigmento**. Seção 11 e a spec da seção atualizadas. Nenhuma regra, critério ou dado mudou. ⚠️ **Pendente de aprovação** |
 | **v1.10** | 2026-08-12 | **O item 4 da D4 sai do papel: o lugar na mesa vira campo.** O número do lugar deixa de ser a posição num array ordenado por hora de confirmação — quem fechava a conta fazia todo mundo andar uma cadeira, e o lugar que o operador tocava era descartado. Agora `lugar` é campo próprio da Participação (seção 9), a ação de sentar aceita a cadeira escolhida, e o banco garante um jogador por lugar entre as contas **abertas**, com a conta encerrada guardando o número que teve (N13). ⚠️ **Meio caminho, de propósito:** a camada visual não entrou, então o estado *reservado* ainda não existe em tela e o critério **A26 continua como está** — ele só muda quando a cadeira reservada for desenhada. Registrados também dois achados de reprodutibilidade, **X12** (banco sem grants versionados) e **X13** (o Design OS não versiona o produto que desenha). ⚠️ **Pendente de aprovação** |
 | **v1.9** | 2026-08-12 | ✅ **D5 ratificada** pelo dono do processo: a autenticação de verdade entra como **F14**, com o critério **A27** e o estado de tela **Entrada**, e é **não cortável** — voltar atrás devolveria a credencial para dentro do código que o navegador baixa. Ela sai de "fora do escopo" na seção 13, onde ficam agora só os itens que ela **não** trouxe: níveis de permissão, troca de usuário e recuperação de senha pela tela. Dois riscos novos, que são a consequência honesta da decisão: **R11**, a sessão cair no meio da noite sem modo offline, e **R12**, a conta do operador não existir quando a noite vai começar. A credencial de demonstração saiu do protótipo e do pacote, e os três `Login.tsx` voltaram a ser byte a byte idênticos. Fecha o desacordo **X2**. ⚠️ **Pendente de aprovação** |
