@@ -1,0 +1,164 @@
+import { describe, it, expect, beforeEach } from 'vitest'
+import { clienteDeTeste, limparBanco, CLUBE_TESTE, DEALER_JOAO } from './banco'
+
+const db = clienteDeTeste()
+
+describe('invariantes do banco', () => {
+  beforeEach(limparBanco)
+
+  it('N1 — recusa uma segunda sessão aberta no mesmo clube', async () => {
+    const primeira = await db
+      .from('sessao')
+      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 20000 })
+    expect(primeira.error).toBeNull()
+
+    const segunda = await db
+      .from('sessao')
+      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 5000 })
+    expect(segunda.error?.code).toBe('23505')
+  })
+
+  it('N4 — recusa dois turnos abertos na mesma sessão', async () => {
+    const { data: s } = await db
+      .from('sessao')
+      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 20000 })
+      .select()
+      .single()
+
+    await db.from('turno').insert({ sessao_id: s!.id, dealer_id: DEALER_JOAO, numero: 1, inicio: 1140 })
+    const segundo = await db
+      .from('turno')
+      .insert({ sessao_id: s!.id, dealer_id: DEALER_JOAO, numero: 2, inicio: 1200 })
+    expect(segundo.error?.code).toBe('23505')
+  })
+
+  it('N15 — recusa jogador sem dígito no WhatsApp', async () => {
+    const r = await db.from('jogador').insert({
+      clube_id: CLUBE_TESTE,
+      nome: 'Sem Zap',
+      whatsapp: 'não informou',
+      limite: 3000,
+      consentimento_em: new Date().toISOString(),
+    })
+    expect(r.error?.code).toBe('23514')
+  })
+
+  it('N16 — recusa contingência sem motivo escrito', async () => {
+    const { data: s } = await db
+      .from('sessao')
+      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 20000 })
+      .select()
+      .single()
+    const { data: t } = await db
+      .from('turno')
+      .insert({ sessao_id: s!.id, dealer_id: DEALER_JOAO, numero: 1, inicio: 1140 })
+      .select()
+      .single()
+
+    const r = await db.from('movimentacao').insert({
+      sessao_id: s!.id,
+      turno_id: t!.id,
+      tipo: 'rake',
+      valor: 180,
+      hora_ocorrencia: 1175,
+      hora_digitacao: 1177,
+      situacao: 'confirmada',
+      confirmacao: 'contingencia',
+      motivo_contingencia: '   ',
+    })
+    expect(r.error?.code).toBe('23514')
+  })
+
+  it('nenhuma janela de checkpoint nasce invertida', async () => {
+    const { data: s } = await db
+      .from('sessao')
+      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 20000 })
+      .select()
+      .single()
+    const { data: t } = await db
+      .from('turno')
+      .insert({ sessao_id: s!.id, dealer_id: DEALER_JOAO, numero: 1, inicio: 1140 })
+      .select()
+      .single()
+
+    const r = await db.from('checkpoint').insert({
+      sessao_id: s!.id,
+      numero: 1,
+      hora: 1175,
+      contado_em: 1175,
+      caixa_esperado: 20000,
+      caixa_contado: 20000,
+      diferenca: 0,
+      veredito: 'fechado',
+      janela_inicio: 1200,
+      janela_fim: 1140,
+      turno_id: t!.id,
+      rake_acumulado: 180,
+    })
+    expect(r.error?.code).toBe('23514')
+  })
+
+  it('recusa duas participacoes abertas no mesmo lugar, e aceita depois de encerrar', async () => {
+    const { data: s } = await db
+      .from('sessao')
+      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 20000 })
+      .select()
+      .single()
+
+    const { data: j1 } = await db
+      .from('jogador')
+      .insert({
+        clube_id: CLUBE_TESTE, nome: 'Um', whatsapp: '11999990001',
+        limite: 3000, consentimento_em: new Date().toISOString(),
+      })
+      .select().single()
+    const { data: j2 } = await db
+      .from('jogador')
+      .insert({
+        clube_id: CLUBE_TESTE, nome: 'Dois', whatsapp: '11999990002',
+        limite: 3000, consentimento_em: new Date().toISOString(),
+      })
+      .select().single()
+
+    const primeira = await db.from('participacao').insert({
+      sessao_id: s!.id, jogador_id: j1!.id, entrou_as: 1140, lugar: 7,
+    })
+    expect(primeira.error).toBeNull()
+
+    const segunda = await db.from('participacao').insert({
+      sessao_id: s!.id, jogador_id: j2!.id, entrou_as: 1150, lugar: 7,
+    })
+    expect(segunda.error?.code).toBe('23505')
+
+    // Encerrar a conta devolve a cadeira ao pool — sem apagar o numero (N13).
+    await db
+      .from('participacao')
+      .update({ encerrada: true, saiu_as: 1200 })
+      .eq('sessao_id', s!.id)
+      .eq('jogador_id', j1!.id)
+
+    const terceira = await db.from('participacao').insert({
+      sessao_id: s!.id, jogador_id: j2!.id, entrou_as: 1210, lugar: 7,
+    })
+    expect(terceira.error).toBeNull()
+  })
+
+  it('recusa lugar fora da mesa', async () => {
+    const { data: s } = await db
+      .from('sessao')
+      .insert({ clube_id: CLUBE_TESTE, aberta_em: new Date().toISOString(), caixa_inicial: 20000 })
+      .select().single()
+    const { data: j } = await db
+      .from('jogador')
+      .insert({
+        clube_id: CLUBE_TESTE, nome: 'Onze', whatsapp: '11999990011',
+        limite: 3000, consentimento_em: new Date().toISOString(),
+      })
+      .select().single()
+
+    const r = await db.from('participacao').insert({
+      sessao_id: s!.id, jogador_id: j!.id, entrou_as: 1140, lugar: 11,
+    })
+    expect(r.error?.code).toBe('23514')
+  })
+})

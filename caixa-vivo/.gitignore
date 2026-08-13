@@ -1,0 +1,13 @@
+node_modules
+dist
+.env.local
+.env
+.DS_Store
+supabase/.temp
+supabase/.branches
+
+# Rascunho do subagent-driven-development.
+.superpowers/
+
+# Artefato de build incremental do tsc. Muda a cada build, nao e fonte.
+tsconfig.tsbuildinfo
